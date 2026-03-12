@@ -381,7 +381,136 @@
     }
 
     @media (max-width: 860px) {
-      .top-row, .bottom-row { grid-template-columns: 1fr; }
+      .ui {
+        padding: 10px;
+      }
+
+      .top-row,
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+
+      .title-left,
+      .bottom-left,
+      .corner-mark {
+        justify-self: stretch;
+        min-width: 0;
+      }
+
+      .title-bar {
+        min-height: 74px;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 12px 14px;
+        gap: 10px;
+      }
+
+      .points-box {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .stats-panel {
+        top: 0;
+        right: 0;
+        width: min(180px, calc(100vw - 20px));
+        padding: 10px 12px;
+      }
+
+      .thought {
+        bottom: 78px;
+        max-width: calc(100vw - 20px);
+        font-size: 12px;
+        padding: 7px 10px;
+      }
+
+      .bottom-row {
+        gap: 10px;
+      }
+
+      .bottom-left {
+        max-width: none;
+        width: 100%;
+        font-size: 10px;
+      }
+
+      .ponder-btn {
+        width: 100%;
+        min-width: 0;
+        height: 56px;
+        border-radius: 18px;
+      }
+
+      .corner-mark {
+        width: 24px;
+        height: 24px;
+        justify-self: end;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .ui {
+        padding: 8px;
+      }
+
+      .title-bar {
+        min-height: 64px;
+        padding: 10px 12px;
+        border-radius: 16px;
+      }
+
+      .title-left {
+        max-width: none;
+      }
+
+      .stats-panel {
+        position: static;
+        width: 100%;
+        margin-top: 8px;
+        border-radius: 12px;
+      }
+
+      .middle-zone {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 8px;
+      }
+
+      .stats-line {
+        grid-template-columns: minmax(0, 1fr) minmax(96px, auto);
+        font-size: 10px;
+      }
+
+      .thought {
+        position: static;
+        transform: none;
+        opacity: 1;
+        max-width: 100%;
+        margin-top: 0;
+      }
+
+      .thought.show {
+        transform: none;
+      }
+
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bottom-left {
+        order: 2;
+      }
+
+      .ponder-btn {
+        order: 1;
+        height: 54px;
+      }
+
+      .corner-mark {
+        order: 3;
+      }
+
       .title-left, .bottom-left, .corner-mark { justify-self: stretch; min-width: 0; }
 
       .title-bar {
