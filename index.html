@@ -196,10 +196,10 @@
 
     .stats-line {
       font-size: 11px;
-      line-height: 1.5;
+      line-height: 1.45;
       color: rgba(255,255,255,0.94);
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+      grid-template-columns: minmax(0, 1fr) minmax(84px, auto);
       gap: 10px;
       align-items: start;
       white-space: normal;
@@ -208,6 +208,8 @@
     .stats-line span:first-child {
       color: rgba(190,205,214,0.82);
       min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .thought {
@@ -430,8 +432,10 @@
       <div class="stats-panel interactive">
         <div style="position:absolute;left:0;right:0;top:0;height:1px;background:rgba(255,255,255,0.12);"></div>
         <div class="stats-title">Stats</div>
-        <div class="stats-line"><span>Observation Time</span><span id="timer-display" style="min-width:0;white-space:normal;overflow-wrap:anywhere;text-align:right;display:block;">0 seconds</span></div>
-        <div class="stats-line"><span>Temperature</span><span id="temp-display">28°C</span></div>
+        <div class="stats-line"><span>Observation Time</span><span id="timer-display" style="min-width:84px;white-space:normal;overflow-wrap:anywhere;text-align:right;display:block;">0 seconds</span></div>
+        <div class="stats-line"><span>Game Day</span><span id="game-day-display" style="min-width:84px;text-align:right;display:block;">Day 1</span></div>
+        <div class="stats-line"><span>Game Time</span><span id="game-time-display" style="min-width:84px;text-align:right;display:block;">06:00</span></div>
+        <div class="stats-line"><span>Temperature</span><span id="temp-display" style="min-width:84px;text-align:right;display:block;">28°C</span></div>
       </div>
 
       <div id="thought" class="thought">The horizon remains unavailable.</div>
@@ -479,7 +483,9 @@
       ponder: document.getElementById('ponder-button'),
       achievement: document.getElementById('achievement'),
       achievementName: document.getElementById('achievement-name'),
-      achievementDesc: document.getElementById('achievement-desc')
+      achievementDesc: document.getElementById('achievement-desc'),
+      gameDay: document.getElementById('game-day-display'),
+      gameTime: document.getElementById('game-time-display')
     };
 
     const state = {
@@ -527,6 +533,22 @@
       }
 
       return `${seconds} second${seconds === 1 ? '' : 's'}`;
+    }
+
+    function formatGameClock(hours24, minutes) {
+      return `${String(hours24).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
+    function getGameTimeData(t) {
+      const cycleSpeed = 0.045;
+      const rawPhase = t * cycleSpeed + 0.6;
+      const phase = ((rawPhase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      const dayProgress = phase / (Math.PI * 2);
+      const totalGameMinutes = Math.floor(dayProgress * 24 * 60);
+      const hours24 = Math.floor(totalGameMinutes / 60) % 24;
+      const minutes = totalGameMinutes % 60;
+      const dayNumber = Math.floor(rawPhase / (Math.PI * 2)) + 1;
+      return { hours24, minutes, dayNumber, phase };
     }
 
     function createSkyTexture() {
@@ -940,8 +962,7 @@
     }
 
     function animateDayNight(t) {
-      const cycleSpeed = 0.045;
-      const phase = t * cycleSpeed + 0.6;
+      const { hours24, minutes, dayNumber, phase } = getGameTimeData(t);
       const daylight = THREE.MathUtils.clamp((Math.sin(phase) + 1) * 0.5, 0, 1);
       const dusk = Math.max(0, 1 - Math.abs(daylight - 0.28) / 0.18);
       const night = 1 - daylight;
@@ -998,6 +1019,12 @@
       if (el.temp) {
         const temp = Math.round(22 + daylight * 7 + dusk * 1 - night * 2);
         el.temp.textContent = `${temp}°C`;
+      }
+      if (el.gameDay) {
+        el.gameDay.textContent = `Day ${dayNumber}`;
+      }
+      if (el.gameTime) {
+        el.gameTime.textContent = formatGameClock(hours24, minutes);
       }
 
       const bloomEl = document.querySelector('.bloom');
