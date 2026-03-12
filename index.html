@@ -1,1704 +1,948 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saber Breaker: A Star Wars Game</title>
-    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.71/build/Tone.js"></script>
-    
-    <style>
-        /* Modern Sci-Fi/Cyberpunk Theme */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0d0d15; /* Very dark blue-purple space */
-            color: #d4d4ff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px 0;
-            overflow-x: hidden; 
-            width: 100%; 
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coconut Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        .game-container {
-            background-color: #1a1a2b; /* Darker, slightly purple background */
-            border: 2px solid var(--saber-color-primary, #00fffb); 
-            border-radius: 4px;
-            box-shadow: 0 0 25px var(--saber-color-glow, rgba(0, 255, 251, 0.4)), 0 0 50px var(--saber-color-glow-light, rgba(0, 255, 251, 0.1)); 
-            padding: 20px;
-            width: 95%; 
-            max-width: 600px;
-            margin: 20px auto; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            position: relative;
-            transition: all 0.3s ease;
-        }
+    :root {
+      --hud-bg: rgba(40, 40, 40, 0.36);
+      --hud-bg-strong: rgba(28, 28, 28, 0.58);
+      --hud-border: rgba(255, 255, 255, 0.12);
+      --hud-text: rgba(255,255,255,0.95);
+      --hud-soft: rgba(255,255,255,0.78);
+      --hud-dim: rgba(255,255,255,0.58);
+      --accent: #dff6ff;
+      --shadow: rgba(0,0,0,0.32);
+    }
 
-        /* Class for screen shake */
-        .game-container.shake {
-            animation: shake 0.15s cubic-bezier(.36,.07,.19,.97) both;
-            transform: translate3d(0, 0, 0);
-            backface-visibility: hidden;
-            perspective: 1000px;
-        }
-        
-        @keyframes shake {
-          10%, 90% { transform: translate3d(-1px, 0, 0); }
-          20%, 80% { transform: translate3d(2px, 0, 0); }
-          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-          40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            color: var(--saber-color-primary, #ff33cc);
-            text-shadow: 0 0 10px var(--saber-color-primary, #ff33cc), 0 0 20px rgba(255, 51, 204, 0.6);
-            letter-spacing: 5px;
-            margin-bottom: 5px;
-            transition: color 0.3s, text-shadow 0.3s;
-        }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #95bdd8;
+      color: var(--hud-text);
+      font-family: Inter, sans-serif;
+    }
 
-        @media (max-width: 640px) {
-            .game-container {
-                padding: 10px;
-                gap: 15px;
-                margin: 10px auto;
-            }
-            h1 {
-                font-size: 1.8rem;
-                letter-spacing: 3px;
-            }
-            .info-panel {
-                font-size: 1rem;
-                padding: 8px 10px;
-            }
-            #startButton, .overlay-button {
-                padding: 12px 25px;
-                font-size: 1rem;
-            }
-            .paddle-controls {
-                font-size: 0.9rem;
-            }
-        }
+    #canvas-container,
+    canvas {
+      position: fixed;
+      inset: 0;
+      display: block;
+    }
 
-        #gameCanvas {
-            background-color: #000000;
-            border: 3px solid var(--saber-color-primary, #00fffb);
-            border-radius: 4px;
-            box-shadow: inset 0 0 10px var(--saber-color-primary, #00fffb);
-            cursor: none;
-            touch-action: none; 
-            width: 100%; 
-            aspect-ratio: 3 / 2;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            min-height: 200px; 
-        }
+    .overlay,
+    .vignette,
+    .bloom,
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
 
-        .info-panel {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            padding: 10px 15px;
-            font-size: 1.2rem;
-            background-color: #0d0d15;
-            border-radius: 4px;
-            border-bottom: 1px solid var(--saber-color-primary, #00fffb);
-            font-weight: bold;
-        }
+    .overlay { z-index: 2; }
 
-        /* Score animation helper */
-        .score-label { 
-            color: var(--saber-color-primary, #00fffb); 
-            text-shadow: 0 0 5px var(--saber-color-primary, #00fffb); 
-        }
-        .life-icon { color: #ff33cc; text-shadow: 0 0 5px #ff33cc; } 
-        .level-label { color: #ffea00; text-shadow: 0 0 5px #ffea00; } 
-        
-        .paddle-controls {
-            width: 100%;
-            padding: 0 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 1rem;
-            color: #d4d4ff;
-        }
-        
-        /* Styles for the color swatch buttons */
-        .color-controls.paddle-controls {
-            justify-content: flex-start;
-            align-items: center;
-        }
+    .vignette {
+      z-index: 3;
+      background: radial-gradient(circle at center, transparent 46%, rgba(0,0,0,0.12) 72%, rgba(0,0,0,0.34) 100%);
+      mix-blend-mode: multiply;
+    }
 
-        .color-swatch {
-            width: 30px;
-            height: 30px;
-            border: 3px solid transparent;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-            padding: 0;
-        }
+    .bloom {
+      z-index: 4;
+      background:
+        radial-gradient(circle at 50% 37%, rgba(255, 204, 125, 0.42), transparent 18%),
+        radial-gradient(circle at 50% 39%, rgba(255, 236, 198, 0.18), transparent 10%),
+        linear-gradient(to bottom, rgba(255,255,255,0.08), transparent 12%);
+      filter: blur(10px);
+      opacity: 0.95;
+    }
 
-        .color-swatch:hover {
-            transform: scale(1.1);
-        }
+    .grain {
+      z-index: 5;
+      opacity: 0.045;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 3px 3px, 4px 4px;
+      animation: grainShift 0.3s steps(2) infinite;
+    }
 
-        .color-swatch.active {
-            border-color: #d4d4ff; /* Light glow around the active one */
-            transform: scale(1.15);
-            box-shadow: 0 0 15px var(--saber-color-primary), 0 0 30px var(--saber-color-glow-light); 
-        }
+    .ui {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px;
+    }
 
-        .cyan-swatch { background-color: #00fffb; }
-        .red-swatch { background-color: #ff4136; }
-        .green-swatch { background-color: #00ff00; }
-        .purple-swatch { background-color: #cc00ff; }
-        /* END NEW STYLES */
+    .interactive { pointer-events: auto; }
 
-        /* Removed #paddleSizeSlider styles */
-        
-        #startButton, .overlay-button {
-            padding: 14px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #0d0d15;
-            background: var(--saber-color-primary, #00fffb);
-            border: none;
-            border-radius: 2px;
-            cursor: pointer;
-            box-shadow: 0 0 15px var(--saber-color-primary, #00fffb), 0 0 30px var(--saber-color-glow, rgba(0, 255, 251, 0.4));
-            transition: all 0.15s ease-out;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .bar {
+      background: linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      background-color: var(--hud-bg);
+      border: 1px solid var(--hud-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 18px rgba(0,0,0,0.18);
+    }
 
-        #startButton:hover, .overlay-button:hover {
-            background: #ff33cc;
-            color: #fff;
-            box-shadow: 0 0 20px #ff33cc, 0 0 40px rgba(255, 51, 204, 0.6);
-            transform: translateY(-1px);
-        }
+    .top-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: 12px;
+    }
 
-        #startButton:active, .overlay-button:active {
-            transform: translateY(1px);
-            box-shadow: 0 0 5px #ff33cc;
-        }
+    .title-bar {
+      min-height: 72px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.96);
+      letter-spacing: 0.015em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)),
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 16px 34px rgba(0,0,0,0.22);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+    }
 
-        #messageOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            z-index: 10;
-            border-radius: 4px;
-        }
+    .title-left {
+      justify-self: start;
+      min-width: min(42vw, 470px);
+      max-width: 620px;
+      gap: 14px;
+    }
 
-        #messageOverlay.active {
-            display: flex;
-        }
+    .title-center-wrap {
+      display: none;
+    }
 
-        #messageContent {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+    .title-center { display: none; }
 
-        #messageText {
-            font-size: 2rem;
-            color: var(--saber-color-primary, #00fffb); 
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px var(--saber-color-primary, #00fffb), 0 0 5px #ff33cc;
-            transition: color 0.3s, text-shadow 0.3s;
-        }
+    .points-box {
+      min-width: 170px;
+      border-radius: 16px;
+      padding: 10px 14px;
+      text-align: left;
+      background:
+        linear-gradient(135deg, rgba(170,220,255,0.18), rgba(255,255,255,0.05)),
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid rgba(191,231,255,0.22);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 10px 24px rgba(0,0,0,0.18),
+        0 0 30px rgba(120, 210, 255, 0.08);
+    }
 
-        #highScoreList {
-            list-style: none;
-            padding: 0;
-            width: 80%;
-            max-width: 300px;
-            margin-top: 20px;
-            border: 1px dashed #ff33cc;
-            background-color: rgba(25, 25, 40, 0.5);
-            border-radius: 4px;
-        }
+    .points-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(210,240,255,0.86);
+      margin-bottom: 4px;
+    }
 
-        #highScoreList li {
-            padding: 8px;
-            border-bottom: 1px solid rgba(255, 51, 204, 0.2);
-            display: flex;
-            justify-content: space-between;
-            font-size: 1rem;
-        }
+    .gear-btn {
+      justify-self: end;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: rgba(255,255,255,0.92);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      background-color: rgba(24,24,24,0.46);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 24px rgba(0,0,0,0.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
 
-        #highScoreList li:last-child {
-            border-bottom: none;
-        }
+    .middle-zone {
+      position: relative;
+      flex: 1;
+    }
 
-        #highScoreList li span {
-            color: #ffea00;
-        }
+    .stats-panel {
+      top: 18px;
+      position: absolute;
+      top: 30px;
+      right: 0;
+      width: 182px;
+      border-radius: 2px;
+      padding: 8px 10px 8px;
+      background-color: rgba(18,18,18,0.5);
+      border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.16);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+      overflow: hidden;
+    }
 
-        .shield-active {
-            border-color: #00ff00 !important;
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), 0 0 50px rgba(0, 255, 0, 0.2) !important; 
-        }
+    .stats-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      color: rgba(255,255,255,0.94);
+      letter-spacing: 0.025em;
+    }
 
-        .force-shield {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-            width: 100%;
-            height: 10px;
-            background-color: rgba(0, 255, 0, 0.2);
-            box-shadow: 0 0 10px #00ff00;
-            z-index: 5;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
+    .stats-line {
+      font-size: 10.5px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.9);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      white-space: nowrap;
+    }
 
-        /* Boss Health Bar Styling */
-        #bossHealthBar {
-            width: 80%;
-            height: 15px;
-            background-color: #440000;
-            border: 2px solid #ff4136;
-            margin: 10px auto;
-            border-radius: 5px;
-            overflow: hidden;
-            display: none; /* Hidden by default */
-            transition: all 0.3s ease;
-        }
+    .stats-line span:first-child { color: rgba(255,255,255,0.82); }
 
-        #bossHealthFill {
-            height: 100%;
-            width: 100%; /* Default to full */
-            background-color: #ff4136;
-            transition: width 0.1s linear;
-        }
-    </style>
+    .thought {
+      position: absolute;
+      left: 50%;
+      bottom: 102px;
+      transform: translateX(-50%) translateY(12px);
+      opacity: 0;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      max-width: min(52vw, 390px);
+      text-align: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(35,35,35,0.18);
+      backdrop-filter: blur(5px);
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      font-style: italic;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.22);
+    }
+
+    .thought.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .bottom-left {
+      justify-self: start;
+      min-width: 220px;
+      max-width: 295px;
+      border-radius: 8px;
+      padding: 7px 9px;
+      color: rgba(255,255,255,0.74);
+      font-size: 10.5px;
+    }
+
+    .ponder-btn {
+      pointer-events: auto;
+      min-width: 86px;
+      height: 26px;
+      border: 0;
+      border-radius: 4px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.92), rgba(214,214,214,0.88));
+      color: #1b1b1b;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.95);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .ponder-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 14px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.95);
+    }
+
+    .ponder-btn:active { transform: translateY(1px); }
+
+    .corner-mark {
+      justify-self: end;
+      width: 30px;
+      height: 30px;
+      position: relative;
+      opacity: 0.9;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+    }
+
+    .corner-mark::before,
+    .corner-mark::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      transform: rotate(45deg);
+    }
+
+    .corner-mark::before {
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.96), rgba(255,255,255,0.42));
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+
+    .corner-mark::after {
+      width: 8px;
+      height: 8px;
+      background: rgba(255,255,255,0.95);
+      clip-path: circle(50% at 50% 50%);
+    }
+
+    .achievement {
+      position: fixed;
+      right: 14px;
+      bottom: 56px;
+      z-index: 12;
+      width: min(300px, calc(100vw - 28px));
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(25,25,25,0.72);
+      border: 1px solid rgba(255,255,255,0.08);
+      transform: translateX(120%);
+      transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.22);
+    }
+
+    .achievement.show { transform: translateX(0); }
+
+    .achievement-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(221,245,255,0.95);
+      margin-bottom: 4px;
+    }
+
+    @keyframes grainShift {
+      0% { transform: translate(0,0); }
+      25% { transform: translate(-1%,1%); }
+      50% { transform: translate(1%,-1%); }
+      75% { transform: translate(1%,1%); }
+      100% { transform: translate(0,0); }
+    }
+
+    @media (max-width: 860px) {
+      .top-row, .bottom-row { grid-template-columns: 1fr; }
+      .title-left, .gear-btn, .bottom-left, .corner-mark { justify-self: stretch; min-width: 0; }
+      .title-bar {
+        min-height: 86px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .points-box {
+        width: 100%;
+      }
+      .stats-panel { top: 18px; right: 0; }
+      .thought { bottom: 84px; max-width: calc(100vw - 24px); }
+    }
+  </style>
 </head>
 <body>
+  <div id="canvas-container"></div>
+  <div class="overlay vignette"></div>
+  <div class="overlay bloom"></div>
+  <div style="position:fixed;inset:0;pointer-events:none;z-index:4;background:linear-gradient(to top, rgba(180,120,72,0.16), transparent 32%);"></div>
+  <div class="overlay grain"></div>
 
-    <div class="game-container" id="gameContainer">
-        <h1>SABER BREAKER</h1>
-        <div class="info-panel">
-            <div class="score-label">SCORE: <span id="scoreValue">0</span></div>
-            <div class="life-icon">LIVES: <span id="livesValue">3</span></div>
-            <div class="level-label">LEVEL: <span id="levelValue">1</span></div>
+  <div class="ui">
+    <div class="top-row">
+      <div class="title-bar title-left interactive">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;color:rgba(210,240,255,0.72);margin-bottom:6px;">Idle Observation Interface</div>
+          <div style="font-size:clamp(26px,3.2vw,42px);font-weight:800;line-height:0.95;letter-spacing:-0.04em;text-transform:none;color:#ffffff;">Coconut <span style="color:rgba(205,238,255,0.98);">Simulator</span></div>
+          <div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.66);letter-spacing:0.03em;">Premium stillness. Sunset telemetry. Elite coconut performance.</div>
         </div>
+        <div class="points-box interactive">
+          <div class="points-label">Transcendence Points</div>
+          <div style="display:flex;align-items:end;gap:8px;line-height:1;">
+            <div id="points-display" style="font-size:clamp(28px,3vw,40px);font-weight:800;letter-spacing:-0.05em;color:#ffffff;">0</div>
+            <div style="font-size:11px;color:rgba(210,240,255,0.72);padding-bottom:4px;letter-spacing:0.08em;text-transform:uppercase;">Live</div>
+          </div>
+        </div>
+      </div>
 
-        
-        <div id="bossHealthBar">
-            <div id="bossHealthFill"></div>
-        </div>
-        
-        <!-- Removed Lightsaber Size Slider -->
-        
-        
-        <div class="color-controls paddle-controls" style="margin-top: -10px;">
-            <label>SABER COLOR:</label>
-            <div id="colorSwatches" style="display: flex; gap: 15px;">
-                <button class="color-swatch cyan-swatch" data-color="cyan" title="Cyan"></button>
-                <button class="color-swatch red-swatch" data-color="red" title="Red"></button>
-                <button class="color-swatch green-swatch" data-color="green" title="Green"></button>
-                <button class="color-swatch purple-swatch" data-color="purple" title="Purple"></button>
-            </div>
-        </div>
-
-        <canvas id="gameCanvas"></canvas>
-        <div id="launchMessage" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
-        color:#ffea00; font-size:1.5rem; text-shadow:0 0 10px #ffea00; pointer-events:none; z-index:5;">
-            Click or tap to launch the ball
-        </div>
-        <button id="startButton">ENGAGE HYPERDRIVE</button>
-
-        <div class="force-shield" id="forceShield" style="opacity: 0;"></div>
-
-        <div id="messageOverlay">
-            <div id="messageContent">
-                <p id="messageText">Welcome, Jedi!</p>
-                <button id="overlayButton" class="overlay-button">Ready</button>
-                </div>
-        </div>
+      <div class="bar gear-btn interactive" aria-label="Settings">⚙</div>
     </div>
 
-    <script>
-        (function() {
-            // --- CONSTANTS AND DOM REFERENCES ---
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            const startButton = document.getElementById('startButton');
-            const messageOverlay = document.getElementById('messageOverlay');
-            const messageText = document.getElementById('messageText');
-            const overlayButton = document.getElementById('overlayButton');
-            // const paddleSizeSlider = document.getElementById('paddleSizeSlider'); // REMOVED
-            const colorSwatchesContainer = document.getElementById('colorSwatches'); 
-            const highScoreList = document.getElementById('highScoreList');
-            const forceShield = document.getElementById('forceShield');
-            const gameContainer = document.getElementById('gameContainer');
-            const bossHealthBar = document.getElementById('bossHealthBar');
-            const bossHealthFill = document.getElementById('bossHealthFill');
-            const scoreValueEl = document.getElementById('scoreValue');
-            const livesValueEl = document.getElementById('livesValue');
-            const levelValueEl = document.getElementById('levelValue');
-
-            const ballRadius = 10; // Training droid size
-            const paddleH = 8; // Blade height
-            const hiltW = 40; // The fixed width of the central grip/hilt
-            const BRICK_ROW_COUNT = 5;
-            const BRICK_COLUMN_COUNT = 8;
-            const BOSS_LEVEL = 6; 
-            const maxLevels = 5; 
-            const PU_DURATION = 10000;
-            const STAR_SPEED = 0.5;
-
-            // Brick geometry variables, updated on resize
-            let brickW, brickH, brickPadding, brickOffsetTop, brickOffsetLeft;
-            let W, H; // Canvas width and height
-
-            // --- GAME STATE OBJECT (Streamlined Globals) ---
-            const gameState = {
-                running: false,
-                levelComplete: false,
-                score: 0,
-                lives: 3,
-                currentLevel: 1,
-                // paddleW is now the TOTAL EFFECTIVE LENGTH of the lightsaber (blade + hilt)
-                paddleW: 100, 
-                paddleX: 0, 
-                lastPaddleX: 0,
-                shakeDuration: 0,
-                boss: null,
-                bricks: [],
-                particles: [],
-                powerUps: [],
-                balls: [],
-                isPaddleExtended: false,
-                shieldActive: false,
-                powerUpTimer: null,
-                currentSaberColor: 'cyan',
-                ballReady: false,
-                lightsaberColor: '#00fffb',
-            };
-
-            // --- COLOR & AUDIO CONSTANTS ---
-            const COLOR_MAP = {
-                cyan: { blade: '#00fffb', glow: 'rgba(0, 255, 251, 0.4)', shadow: 'rgba(0, 255, 251, 0.1)' },
-                red: { blade: '#ff4136', glow: 'rgba(255, 65, 54, 0.4)', shadow: 'rgba(255, 65, 54, 0.1)' },
-                green: { blade: '#00ff00', glow: 'rgba(0, 255, 0, 0.4)', shadow: 'rgba(0, 255, 0, 0.1)' },
-                purple: { blade: '#cc00ff', glow: 'rgba(204, 0, 255, 0.4)', shadow: 'rgba(204, 0, 255, 0.1)' }
-            };
-
-            const PU_TYPE = { EXTEND: 1, MULTI: 2, SHIELD: 3 };
-            const PU_COLORS = { [PU_TYPE.EXTEND]: '#ffea00', [PU_TYPE.MULTI]: '#ff33cc', [PU_TYPE.SHIELD]: '#00ff00' };
-
-            const imperialMarchSequence = [
-                { note: 'G4', duration: 0.25 }, { note: 'G4', duration: 0.25 }, { note: 'G4', duration: 0.25 }, 
-                { note: 'Eb4', duration: 0.15 }, { note: 'Bb4', duration: 0.10 }, { note: 'G4', duration: 0.25 }, 
-                { note: 'Eb4', duration: 0.25 }, { note: 'Bb4', duration: 0.25 }, { note: 'G4', duration: 0.5 },
-            ];
-            let imperialMarchIndex = 0;
-
-            let blasterSynth, saberSynth, bgSynth, fanfareSynth, explosionSynth;
-            let isAudioReady = false;
-            let starScrollY = 0;
-            let stars = [];
-            let bgRepeatId = null; // ID for the repeating background hum event.
-
-
-            /* Level Configuration Data */
-            const levelData = [
-                [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]],
-                [[1, 2, 1, 2, 2, 1, 2, 1], [2, 1, 1, 1, 1, 1, 1, 2], [1, 1, 2, 0, 0, 2, 1, 1], [2, 1, 1, 1, 1, 1, 1, 2], [1, 2, 1, 2, 2, 1, 2, 1]],
-                [[3, 0, 2, 2, 2, 2, 0, 3], [2, 3, 0, 3, 3, 0, 3, 2], [3, 0, 2, 0, 0, 2, 0, 3], [2, 3, 0, 3, 3, 0, 3, 2], [3, 0, 2, 2, 2, 2, 0, 3]],
-                [[3, 2, 3, 1, 1, 3, 2, 3], [2, 1, 2, 0, 0, 2, 1, 2], [3, 2, 3, 1, 1, 3, 2, 3], [2, 1, 2, 0, 0, 2, 1, 2], [3, 2, 3, 1, 1, 3, 2, 3]],
-                [[3, 3, 3, 3, 3, 3, 3, 3], [0, 2, 0, 2, 2, 0, 2, 0], [3, 3, 3, 3, 3, 3, 3, 3], [0, 2, 0, 2, 2, 0, 2, 0], [3, 3, 3, 3, 3, 3, 3, 3]]
-            ];
-
-
-                        // --- UI & STATE UPDATERS ---
-
-            /**
-             * Central function to update all dynamic elements in the UI.
-             */
-            function updateUI() {
-                scoreValueEl.textContent = gameState.score;
-                livesValueEl.textContent = gameState.lives;
-                levelValueEl.textContent = gameState.currentLevel === BOSS_LEVEL ? 'BOSS' : gameState.currentLevel;
-
-                if (gameState.boss) {
-                    updateBossHealthBar();
-                }
-
-                forceShield.style.opacity = gameState.shieldActive ? 1 : 0;
-                gameContainer.classList.toggle('shield-active', gameState.shieldActive);
-            }
-            
-            function processScoreChange(points) { 
-                gameState.score += points;
-                // Add a temporary visual "bounce" on score change for feedback
-                scoreValueEl.animate([
-                    { transform: 'scale(1.2)' },
-                    { transform: 'scale(1.0)' }
-                ], {
-                    duration: 100,
-                    easing: 'ease-out'
-                });
-                updateUI();
-            }
-
-            function updateBossHealthBar() { 
-                if (!gameState.boss) return;
-                const percentage = gameState.boss.health / gameState.boss.maxHealth;
-                bossHealthFill.style.width = `${percentage * 100}%`;
-                // Flash red when low health
-                bossHealthFill.style.backgroundColor = percentage < 0.3 ? '#ff0000' : '#ff4136';
-            }
-
-            function updateSaberColor(newColorKey) {
-                // *** Save the current paddle position before DOM manipulation ***
-                let originalPaddleX = gameState.paddleX; 
-                
-                gameState.currentSaberColor = newColorKey;
-                const colorObj = COLOR_MAP[newColorKey];
-                gameState.lightsaberColor = colorObj.blade;
-                
-                document.documentElement.style.setProperty('--saber-color-primary', colorObj.blade);
-                document.documentElement.style.setProperty('--saber-color-glow', colorObj.glow);
-                document.documentElement.style.setProperty('--saber-color-glow-light', colorObj.shadow);
-
-                
-                // Handle active class on swatches
-                const swatches = document.querySelectorAll('.color-swatch');
-                swatches.forEach(swatch => {
-                    swatch.classList.remove('active');
-                    if (swatch.dataset.color === newColorKey) {
-                        swatch.classList.add('active');
-                    }
-                });
-
-                // *** Restore the paddle position immediately after DOM manipulation ***
-                if (gameState.running && originalPaddleX !== undefined) {
-                    gameState.paddleX = originalPaddleX;
-                }
-            }
-
-
-            // --- GAME SETUP & UTILITIES ---
-
-            function clampPaddleX() {
-                 if (W === undefined || gameState.paddleX === undefined) return;
-                 // The paddleW now represents the TOTAL width of the lightsaber.
-                 const currentTotalPaddleW = gameState.isPaddleExtended ? 150 : gameState.paddleW; 
-                 gameState.paddleX = Math.max(0, Math.min(gameState.paddleX, W - currentTotalPaddleW));
-            }
-
-            function updateCanvasDimensions() {
-                const container = document.getElementById('gameContainer');
-                const style = window.getComputedStyle(container);
-                const paddingLeft = parseFloat(style.paddingLeft) || 0;
-                const paddingRight = parseFloat(style.paddingRight) || 0;
-                const targetWidth = container.clientWidth - paddingLeft - paddingRight;
-
-                W = Math.min(targetWidth, 600);
-                H = Math.round(W * (2 / 3)); 
-
-                canvas.width = W;
-                canvas.height = H;
-                canvas.style.width = W + 'px';
-                canvas.style.height = H + 'px';
-
-                // --- BRICK SCALING LOGIC ---
-                const BRICK_FIELD_RATIO = 0.95;
-                const brickFieldW = W * BRICK_FIELD_RATIO;
-                const numPaddings = BRICK_COLUMN_COUNT - 1; 
-
-                const totalUnits = (BRICK_COLUMN_COUNT * 5) + numPaddings; 
-                const unitSize = brickFieldW / totalUnits;
-
-                brickPadding = Math.max(2, Math.round(unitSize * 1));
-                brickW = Math.max(10, Math.round(unitSize * 5));
-                brickH = Math.round(H * 0.04); 
-
-                const actualBrickFieldW = (BRICK_COLUMN_COUNT * brickW) + (numPaddings * brickPadding);
-                brickOffsetLeft = (W - actualBrickFieldW) / 2;
-                brickOffsetTop = Math.max(30, Math.round(H * 0.08)); 
-                
-                if (stars.length === 0 || W !== canvas.width || H !== canvas.height) { 
-                    initStars(); 
-                }
-
-                if (gameState.boss) {
-                    gameState.boss.w = W * 0.9;
-                    gameState.boss.h = H * 0.2;
-                    gameState.boss.x = (W - gameState.boss.w) / 2;
-                    gameState.boss.y = H * 0.05;
-                }
-                
-                // Initialize/update paddle position based on its total width (paddleW)
-                const initialSaberW = gameState.paddleW;
-                if (gameState.paddleX === 0) {
-                    gameState.paddleX = (W - initialSaberW) / 2; 
-                }
-                
-                if (gameState.balls.length === 0 && !gameState.running) {
-                    gameState.balls.push({
-                    x: W / 2,
-                    y: H - 10 - ballRadius,
-                    dx: 0,
-                    dy: 0
-                });
-                gameState.ballReady = true;
-                document.getElementById('launchMessage').style.display = 'block';
-                }
-            }
-
-            function initBricks(level) {
-                gameState.boss = null;
-                bossHealthBar.style.display = 'none';
-                imperialMarchIndex = 0; // Reset music index on new level
-
-                if (level === BOSS_LEVEL) {
-                    const bossW = W * 0.9;
-                    const bossH = H * 0.2;
-                    gameState.boss = {
-                        x: (W - bossW) / 2,
-                        y: H * 0.05,
-                        w: bossW,
-                        h: bossH,
-                        maxHealth: 50 + (gameState.currentLevel * 10), 
-                        health: 50 + (gameState.currentLevel * 10),
-                        color: '#ff4136', 
-                        isHit: false
-                    };
-                    bossHealthBar.style.display = 'block';
-                    updateBossHealthBar();
-                    gameState.bricks = []; 
-                } else if (level > maxLevels) { 
-                    gameState.bricks = []; 
-                } else {
-                    const layout = levelData[level - 1]; 
-                    gameState.bricks = [];
-                    for (let c = 0; c < BRICK_COLUMN_COUNT; c++) {
-                        gameState.bricks[c] = [];
-                        for (let r = 0; r < BRICK_ROW_COUNT; r++) {
-                            const type = layout[r][c];
-                            gameState.bricks[c][r] = { x: 0, y: 0, status: type, type: type }; 
-                        }
-                    }
-                }
-            }
-            
-            function screenShake(duration, intensity = 1) {
-                // Simplified: use a time check in the loop to manage the duration
-                gameState.shakeDuration = performance.now() + duration;
-                gameContainer.classList.add('shake');
-            }
-
-            function resetBallAndPaddle() { 
-                if (W === undefined || H === undefined) updateCanvasDimensions();
-                
-                clearPowerUpTimer();
-                
-                gameState.balls = [];
-                // Adjusted initial speed to feel right with the larger ball size
-                const baseSpeed = 4.0; 
-                const speed = baseSpeed + (gameState.currentLevel - 1) * 0.4; 
-                const angleFactor = 0.7; 
-                const initialDx = speed * (Math.random() < 0.5 ? angleFactor : -angleFactor); 
-                const initialDy = -Math.abs(speed * Math.sqrt(1 - angleFactor * angleFactor)); 
-
-                gameState.balls.push({
-                    x: W / 2,
-                    y: H - 10 - ballRadius,
-                    dx: 0,
-                    dy: 0
-                });
-                gameState.ballReady = true;
-                document.getElementById('launchMessage').style.display = 'block';
-
-                // Use the default paddle width (100) for calculating starting position
-                const initialSaberW = gameState.paddleW; 
-                gameState.paddleX = (W - initialSaberW) / 2; 
-                gameState.lastPaddleX = gameState.paddleX;
-            }
-
-
-            // --- GAME FLOW LOGIC ---
-
-            function nextLevel() {
-                Tone.start().then(() => playFanfare());
-
-                const completedLevel = gameState.currentLevel; 
-                const nextLevelDisplay = completedLevel === maxLevels ? 'IMPERIAL BOSS FIGHT INCOMING!' : `LEVEL ${completedLevel} COMPLETE!<br>INCOMING: LEVEL ${completedLevel + 1} FLEET...`;
-                
-                if (completedLevel === maxLevels) {
-                    gameState.currentLevel = BOSS_LEVEL;
-                } else {
-                    gameState.currentLevel++;
-                }
-
-                messageText.innerHTML = nextLevelDisplay;
-                overlayButton.textContent = gameState.currentLevel === BOSS_LEVEL ? "ATTACK STAR DESTROYER" : "CONTINUE";
-                messageText.style.color = gameState.lightsaberColor; 
-                highScoreList.style.display = 'none';
-                messageOverlay.classList.add('active');
-                
-                overlayButton.onclick = () => {
-                    initBricks(gameState.currentLevel);
-                    resetBallAndPaddle();
-                    messageOverlay.classList.remove('active');
-                    gameState.running = true;
-                    gameState.levelComplete = false; 
-                    updateUI();
-                    
-                    // Re-start BGHum if continuing to a new level
-                    Tone.start().then(() => startBGHum());
-                };
-            }
-
-            function startGame() {
-                Tone.start().then(() => {
-                    setupAudio(); 
-                    startBGHum();
-                });
-
-                if (gameState.running) return;
-                
-                clearPowerUpTimer();
-
-                gameState.score = 0;
-                gameState.lives = 3;
-                gameState.currentLevel = 1; 
-                gameState.levelComplete = false; 
-                gameState.powerUps = [];
-                gameState.particles = [];
-                gameState.balls = [];
-                gameState.boss = null;
-                
-                updateUI(); // Reset UI values
-                
-                initBricks(gameState.currentLevel);
-                resetBallAndPaddle();
-                
-                messageOverlay.classList.remove('active');
-                startButton.style.display = 'none';
-                gameState.running = true;
-            }
-
-            async function endGame(win = false) {
-                gameState.running = false;
-                stopBGHum();
-                clearPowerUpTimer();
-                
-                startButton.textContent = 'RESTART THE FORCE';
-                startButton.style.display = 'block';
-
-                if (win) {
-                    if (gameState.currentLevel < BOSS_LEVEL) {
-                        nextLevel(); 
-                        return; 
-                    } else {
-                        messageText.innerHTML = `GALACTIC VICTORY!<br>THE EMPIRE IS DEFEATED!<br>FINAL SCORE: ${gameState.score}`;
-                        messageText.style.color = '#00ff00';
-                        overlayButton.textContent = "PLAY AGAIN";
-                    }
-                } else {
-                    messageText.innerHTML = 'GAME OVER. THE DARK SIDE PREVAILS!<br>FINAL SCORE: ' + gameState.score;
-                    messageText.style.color = gameState.lightsaberColor;
-                    overlayButton.textContent = "TRY AGAIN";
-                    }
-                
-                messageOverlay.classList.add('active');
-                overlayButton.onclick = startGame; 
-            }
-
-
-            // --- COLLISION HANDLERS ---
-            
-            function checkBallPaddleCollision(ball, currentSpeed) {
-                // currentSaberW is the TOTAL effective width of the lightsaber (blade + hilt in the middle)
-                const currentSaberW = gameState.isPaddleExtended ? 150 : gameState.paddleW;
-                const totalSaberW = currentSaberW; 
-                const saberY = H - paddleH - 10; 
-                
-                // New: Check collision against the total vertical height occupied by the blade and hilt
-                const hiltHeight = paddleH + 5; 
-                const hiltOffset = (hiltHeight - paddleH) / 2; // 2.5px
-                const saberTop = saberY - hiltOffset;
-                const saberBottom = saberY + paddleH + hiltOffset; 
-
-                // Check collision with the entire saber area (horizontally and vertically)
-                if (ball.x > gameState.paddleX && ball.x < gameState.paddleX + totalSaberW && 
-                    ball.y + ballRadius > saberTop && ball.y - ballRadius < saberBottom) {
-                    
-                    ball.dy = -ball.dy; 
-                    Tone.start().then(() => saberSynth.triggerAttackRelease("C4", "8n"));
-
-                    // Calculate relative intersection for angle adjustment using totalSaberW
-                    const relativeIntersectX = (gameState.paddleX + (totalSaberW / 2)) - ball.x;
-                    const normalizedRelativeIntersectionX = (relativeIntersectX / (totalSaberW / 2));
-                    const baseBounceAngle = normalizedRelativeIntersectionX * (Math.PI / 3); 
-                    
-                    let newDx = currentSpeed * -Math.sin(baseBounceAngle);
-                    
-                    // Add paddle velocity effect
-                    const paddleVelocity = gameState.paddleX - gameState.lastPaddleX;
-                    const maxPaddleSpeedEffect = 2; 
-                    newDx += (paddleVelocity / 5) * maxPaddleSpeedEffect; 
-                    
-                    const maxDxMagnitude = currentSpeed * 0.9;
-                    ball.dx = Math.max(-maxDxMagnitude, Math.min(newDx, maxDxMagnitude));
-                    
-                    ball.dy = -Math.abs(Math.sqrt(currentSpeed * currentSpeed - ball.dx * ball.dx));
-                    return true;
-                }
-                return false;
-            }
-
-            function checkWallCollision(ball) {
-                 // Side walls
-                if (ball.x + ball.dx > W - ballRadius || ball.x + ball.dx < ballRadius) {
-                    ball.dx = -ball.dx;
-                }
-                
-                // Top wall
-                if (ball.y + ball.dy < ballRadius) {
-                    ball.dy = -ball.dy;
-                } 
-                
-                // Bottom wall (miss)
-                else if (ball.y + ball.dy > H - ballRadius) {
-                    const currentSpeed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
-                    if (!checkBallPaddleCollision(ball, currentSpeed)) {
-                        // Ball is lost.
-                        if (gameState.shieldActive) {
-                            Tone.start().then(() => fanfareSynth.triggerAttackRelease("E3", "8n")); 
-                            
-                            clearPowerUpTimer(); // Clearing shield effect if ball hits bottom
-                            
-                            ball.dy = -ball.dy; // Shield bounce
-                        } else {
-                            return true; // Signal ball removal
-                        }
-                    }
-                }
-                return false; // Ball not removed
-            }
-
-            function bossCollisionDetection(ball) { 
-                if (!gameState.boss) return false;
-                
-                const { x, y, w, h } = gameState.boss;
-
-                // Simple AABB collision for the boss
-                if (ball.x + ballRadius > x && ball.x - ballRadius < x + w && ball.y + ballRadius > y && ball.y - ballRadius < y + h) {
-                    
-                    // Determine where to reverse dy (top/bottom) or dx (sides)
-                    const prevX = ball.x - ball.dx;
-                    const prevY = ball.y - ball.dy;
-
-                    if (prevY + ballRadius <= y || prevY - ballRadius >= y + h) {
-                        ball.dy = -ball.dy;
-                    } else {
-                        ball.dx = -ball.dx;
-                    }
-                    
-                    gameState.boss.health--;
-                    gameState.boss.isHit = true; 
-
-                    Tone.start().then(() => explosionSynth.triggerAttackRelease("C2", "8n"));
-                    screenShake(50, 2); 
-                    
-                    processScoreChange(2); 
-                    
-                    if (gameState.boss.health <= 0) {
-                        spawnParticles(x, y, '#ff4136'); 
-                        spawnParticles(x + w/2, y + h/2, y + h/2);
-                        Tone.start().then(() => explosionSynth.triggerAttackRelease("C1", "4n"));
-                        gameState.levelComplete = true; 
-                    }
-                    
-                    setTimeout(() => gameState.boss.isHit = false, 50);
-
-                    return true;
-                }
-                return false;
-            }
-
-
-            function brickCollisionDetection(ball) { 
-                let brickHit = false;
-                for (let c = 0; c < BRICK_COLUMN_COUNT; c++) {
-                    for (let r = 0; r < BRICK_ROW_COUNT; r++) {
-                        const brick = gameState.bricks[c][r];
-                        if (brick.status > 0) {
-                            const brickX = brick.x;
-                            const brickY = brick.y;
-
-                            // AABB collision detection including ball radius
-                            if (ball.x + ballRadius > brickX && ball.x - ballRadius < brickX + brickW && 
-                                ball.y + ballRadius > brickY && ball.y - ballRadius < brickY + brickH) {
-                                
-                                // Simple vertical flip
-                                ball.dy = -ball.dy; 
-                                
-                                // Complex collision detection logic (omitted for single-file size constraint, using simple flip)
-                                
-                                brick.status--; 
-                                
-                                if (brick.type === 3) {
-                                    Tone.start().then(() => explosionSynth.triggerAttackRelease("G3", "16n"));
-                                    screenShake(50, 1);
-                                } else {
-                                    const { note, duration } = imperialMarchSequence[imperialMarchIndex];
-                                    Tone.start().then(() => blasterSynth.triggerAttackRelease(note, duration));
-                                    imperialMarchIndex = (imperialMarchIndex + 1) % imperialMarchSequence.length;
-                                }
-
-                                if (brick.status === 0) {
-                                    let points = 0;
-                                    let glowColor;
-                                    if (brick.type === 1) { points = 10; glowColor = gameState.lightsaberColor; }
-                                    else if (brick.type === 2) { points = 20; glowColor = PU_COLORS[PU_TYPE.MULTI]; }
-                                    else if (brick.type === 3) { 
-                                        points = 30; 
-                                        glowColor = PU_COLORS[PU_TYPE.SHIELD]; 
-                                        screenShake(100, 3); 
-                                    }
-                                    
-                                    processScoreChange(points);
-                                    spawnParticles(brick.x, brick.y, glowColor);
-                                    spawnPowerUp(brick.x, brick.y);
-                                }
-                                brickHit = true;
-                                break; 
-                            }
-                        }
-                    }
-                    if (brickHit) break;
-                }
-                return brickHit;
-            }
-            
-            // --- MOVEMENT & DRAWING (Simplified) ---
-
-            function moveBalls() { 
-                for (let i = 0; i < gameState.balls.length; i++) {
-                    const ball = gameState.balls[i];
-                    
-                    if (gameState.currentLevel === BOSS_LEVEL) {
-                        bossCollisionDetection(ball);
-                    } else {
-                        brickCollisionDetection(ball);
-                    }
-                    
-                    if (checkWallCollision(ball)) {
-                        // Ball was lost/removed
-                        gameState.balls.splice(i, 1);
-                        i--; 
-
-                        if (gameState.balls.length === 0 && gameState.running) {
-                            gameState.lives--;
-                            screenShake(150, 4);
-
-                            if (gameState.lives === 0) {
-                                endGame(false);
-                            } else {
-                                resetBallAndPaddle();
-                            }
-                            updateUI();
-                        }
-                    } else {
-                         // Apply movement after collision check
-                        ball.x += ball.dx;
-                        ball.y += ball.dy;
-                    }
-                }
-            }
-            
-            function drawBricks() {
-                let totalBricks = 0;
-                for (let c = 0; c < BRICK_COLUMN_COUNT; c++) {
-                    for (let r = 0; r < BRICK_ROW_COUNT; r++) {
-                        const brick = gameState.bricks[c][r];
-                        if (brick.status > 0) {
-                            totalBricks++;
-                            let brickX = (c * (brickW + brickPadding)) + brickOffsetLeft;
-                            let brickY = (r * (brickH + brickPadding)) + brickOffsetTop;
-                            
-                            brick.x = brickX;
-                            brick.y = brickY; 
-                            
-                            ctx.save();
-                            ctx.translate(brickX, brickY);
-
-                            let glowColor;
-                            if (brick.type === 3) glowColor = PU_COLORS[PU_TYPE.SHIELD];
-                            else if (brick.type === 2) glowColor = PU_COLORS[PU_TYPE.MULTI];
-                            else glowColor = gameState.lightsaberColor;
-                            
-                            ctx.shadowBlur = brick.status * 3; 
-                            ctx.shadowColor = glowColor;
-
-                            if (brick.type === 1) drawImperialShip(brickW, brickH, brick.status, brick.type);
-                            else if (brick.type === 2) drawTieFighter(brickW, brickH, brick.status, brick.type);
-                            else if (brick.type === 3) drawDreadnought(brickW, brickH, brick.status, brick.type);
-                            
-                            ctx.restore();
-                        }
-                    }
-                }
-                
-                if (totalBricks === 0 && gameState.currentLevel < BOSS_LEVEL && !gameState.levelComplete) {
-                    gameState.levelComplete = true; 
-                }
-            }
-
-            // --- POWER-UP LOGIC ---
-
-            function clearPowerUpTimer() { 
-                gameState.isPaddleExtended = false;
-                gameState.shieldActive = false;
-                if (gameState.powerUpTimer) clearTimeout(gameState.powerUpTimer);
-                gameState.paddleW = 100; // Reset to fixed default size (total width)
-                updateUI();
-            }
-
-            function applyPowerUp(type) { 
-                Tone.start().then(() => fanfareSynth.triggerAttackRelease(["C6", "G6"], "8n")); 
-
-                if (type === PU_TYPE.EXTEND) {
-                    clearPowerUpTimer();
-                    gameState.isPaddleExtended = true;
-                    gameState.powerUpTimer = setTimeout(clearPowerUpTimer, PU_DURATION);
-                } 
-else if (type === PU_TYPE.MULTI) {
-    if (gameState.balls.length === 0) {
-        gameState.balls.push({
-            x: W / 2,
-            y: H - 10 - ballRadius,
-            dx: 0,
-            dy: 0
-        });
-        gameState.ballReady = true;
-        document.getElementById('launchMessage').style.display = 'block';
-    } else {
-        // For each ball in play, spawn two more with slightly different angles
-        const newBalls = [];
-        gameState.balls.forEach(ball => {
-            const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy) || 4;
-            for (let offset of [-0.3, 0.3]) {
-                const angle = Math.atan2(ball.dy, ball.dx) + offset;
-                newBalls.push({
-                    x: ball.x,
-                    y: ball.y,
-                    dx: speed * Math.cos(angle),
-                    dy: speed * Math.sin(angle)
-                });
-            }
-        });
-        gameState.balls.push(...newBalls);
-        // Do NOT set ballReady or show the launch overlay!
+    <div class="middle-zone">
+      <div class="stats-panel interactive">
+        <div class="stats-title">STATS</div>
+        <div class="stats-line"><span>Observation Time:</span><span id="timer-display">0 seconds</span></div>
+        <div class="stats-line"><span>Temperature:</span><span id="temp-display">28°C</span></div>
+      </div>
+
+      <div id="thought" class="thought">The horizon remains unavailable.</div>
+    </div>
+
+    <div class="bottom-row">
+      <div class="bar bottom-left interactive">
+        Beach state stable. Ambient stillness within tolerance.
+      </div>
+
+      <button id="ponder-button" class="ponder-btn">PONDER</button>
+
+      <div class="corner-mark"></div>
+    </div>
+  </div>
+
+  <div id="achievement" class="achievement">
+    <div class="flex items-center gap-3">
+      <div class="text-2xl">🥥</div>
+      <div>
+        <div class="achievement-title">Achievement Unlocked</div>
+        <div id="achievement-name" class="text-lg font-semibold">First Ponder</div>
+        <div id="achievement-desc" class="text-sm text-white/70">You committed to the bit.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------------------------------------
+    // DOM + GAME STATE
+    // ------------------------------------------------------------
+    const el = {
+      timer: document.getElementById('timer-display'),
+      points: document.getElementById('points-display'),
+      temp: document.getElementById('temp-display'),
+      thought: document.getElementById('thought'),
+      ponder: document.getElementById('ponder-button'),
+      achievement: document.getElementById('achievement'),
+      achievementName: document.getElementById('achievement-name'),
+      achievementDesc: document.getElementById('achievement-desc')
+    };
+
+    const state = {
+      startTime: performance.now(),
+      points: 0,
+      shownThought: false,
+      activeThoughtIndex: -1,
+      unlocked: new Set(),
+      thoughts: [
+        'The horizon remains unavailable.',
+        'A premium coconut never rushes.',
+        'Somewhere, a seagull disapproves.',
+        'Stillness has excellent lighting.',
+        'This beach understands market positioning.',
+        'The sea is doing a lot of work for your score.',
+        'An elite coconut commits to stillness.',
+        'The island respects your inactivity.',
+        'Every second here is operational excellence.',
+        'The surf continues its unpaid performance.',
+        'You are watching premium sand in real time.'
+      ]
+    };
+
+    // ------------------------------------------------------------
+    // THREE.JS GLOBALS
+    // ------------------------------------------------------------
+    let scene, camera, renderer, clock;
+    let coconut, ocean, palmGroup, hutGroup, shoreFoam, sunMesh, birdGroup;
+
+    // ------------------------------------------------------------
+    // UTILS
+    // ------------------------------------------------------------
+    function formatElapsedLabel(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      const totalHours = Math.floor(totalMinutes / 60);
+
+      if (totalSeconds < 60) {
+        return `${totalSeconds} second${totalSeconds === 1 ? '' : 's'}`;
+      }
+
+      if (totalMinutes < 60) {
+        return `${totalMinutes} minute${totalMinutes === 1 ? '' : 's'}`;
+      }
+
+      return `${totalHours} hour${totalHours === 1 ? '' : 's'}`;
     }
-}
- else if (type === PU_TYPE.SHIELD) {
-                    if (gameState.shieldActive) return; 
-                    
-                    clearPowerUpTimer(); // Clear any existing timer/effect first
-                    gameState.shieldActive = true;
-                    gameState.powerUpTimer = setTimeout(clearPowerUpTimer, PU_DURATION);
-                }
-                updateUI();
-            }
-            
-            function movePowerUps() { 
-                for (let i = 0; i < gameState.powerUps.length; i++) {
-                    const pu = gameState.powerUps[i];
-                    pu.y += 2;
-                    
-                    // The total vertical area of the paddle for collision detection
-                    const hiltHeight = paddleH + 5; 
-                    const hiltOffset = (hiltHeight - paddleH) / 2; // 2.5px
-                    const paddleYStart = H - 10 - hiltOffset; // Top edge of the hilt area
 
-                    // The total width of the paddle is currentSaberW (100 or 150)
-                    const currentSaberW = gameState.isPaddleExtended ? 150 : gameState.paddleW;
-
-                    if (pu.y + pu.r > paddleYStart && pu.y - pu.r < H && 
-                        pu.x > gameState.paddleX && pu.x < gameState.paddleX + currentSaberW) 
-                    {
-                        applyPowerUp(pu.type);
-                        gameState.powerUps.splice(i, 1);
-                        i--;
-                    } 
-                    else if (pu.y > H) {
-                        gameState.powerUps.splice(i, 1);
-                        i--;
-                    }
-                }
-            }
-
-
-            // --- AUDIO SETUP ---
-            function setupAudio() {
-                if (isAudioReady) return;
-                
-                Tone.start().then(() => {
-                    blasterSynth = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 }, volume: -5 }).toDestination();
-                    saberSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.2, sustain: 0.01, release: 0.3, }, volume: -10 }).toDestination();
-                    bgSynth = new Tone.PolySynth(Tone.Synth, { volume: -18, oscillator: { type: "sine" }, envelope: { attack: 0.5, decay: 1, sustain: 0.7, release: 2 } }).toDestination();
-                    fanfareSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "square" }, envelope: { attack: 0.02, decay: 0.3, sustain: 0, release: 0.5 } }).toDestination();
-                    explosionSynth = new Tone.MembraneSynth({ volume: -10, pitchDecay: 0.05, octaves: 8, envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 0.7, attackCurve: 'exponential' } }).toDestination();
-                    isAudioReady = true;
-                }).catch(e => console.error("Tone.js could not start audio context:", e));
-            }
-            
-            // --- FIX FOR TONE.JS START TIME ERROR ---
-            
-            function stopBGHumInternal() {
-                // 1. Clear the scheduled event first
-                if (bgRepeatId !== null) {
-                    Tone.Transport.clear(bgRepeatId);
-                    bgRepeatId = null;
-                }
-                // 2. Release synths
-                bgSynth.releaseAll();
-                // 3. Stop transport if nothing else is running (optional but safe)
-                if (Tone.Transport.state === 'started') {
-                    Tone.Transport.stop(); 
-                }
-            }
-
-            function startBGHum() { 
-                if (!isAudioReady) return;
-                
-                stopBGHumInternal(); // Ensure a clean slate before scheduling
-
-                bgSynth.triggerAttackRelease(["C2", "G2"], "4n");
-                
-                // Schedule the new repeating event
-                bgRepeatId = Tone.Transport.scheduleRepeat(() => { 
-                    bgSynth.triggerAttackRelease(["C2", "G2"], "2n");
-                }, "2n");
-
-                // Start the transport
-                Tone.Transport.start();
-            }
-
-            function stopBGHum() { 
-                stopBGHumInternal();
-            }
-            
-            // --- END AUDIO FIX ---
-
-            function playFanfare() { 
-                 if (!isAudioReady) return;
-                 fanfareSynth.triggerAttackRelease(["C5", "E5", "G5"], "4n");
-            }
-            
-            // --- DRAWING FUNCTIONS (Kept largely the same for brevity) ---
-
-            function drawBoss() { 
-                if (!gameState.boss) return;
-                const { x, y, w, h, isHit } = gameState.boss;
-
-                ctx.save();
-                ctx.translate(x, y);
-
-                // 1. Main Hull (Grey)
-                ctx.fillStyle = isHit ? 'rgba(255, 100, 100, 1)' : '#778899';
-                ctx.strokeStyle = '#333344';
-                ctx.lineWidth = 2;
-                
-                ctx.beginPath();
-                // Front V-shape
-                ctx.moveTo(0, 0); 
-                ctx.lineTo(w, h / 2);
-                ctx.lineTo(0, h); 
-                ctx.lineTo(w * 0.8, h * 0.8);
-                ctx.lineTo(w * 0.8, h * 0.2);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-
-                // 2. Command Tower (Darker)
-                ctx.fillStyle = '#1a1a2b';
-                ctx.fillRect(w * 0.4, h * 0.2, w * 0.2, h * 0.6);
-                
-                // 3. Engine Glow (Red)
-                const engineGlowColor = '#ff4136';
-                const engineSize = h * 0.3;
-                ctx.fillStyle = engineGlowColor;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = engineGlowColor;
-                
-                ctx.fillRect(w * 0.9, h * 0.2, w * 0.1, engineSize);
-                ctx.fillRect(w * 0.9, h * 0.8 - engineSize, w * 0.1, engineSize);
-                
-                // 4. Damage Overlay (Flicker)
-                if (isHit) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                    ctx.fillRect(0, 0, w, h);
-                }
-
-                ctx.shadowBlur = 0;
-                ctx.restore();
-            }
-
-            function drawBall(ball) { 
-                // Droid Body (Metallic Grey Sphere)
-                const r = ballRadius;
-                
-                // 1. Shadow for depth (dark metallic base)
-                ctx.beginPath();
-                ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2);
-                ctx.fillStyle = '#444455';
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-                ctx.fill();
-                ctx.closePath();
-                ctx.shadowBlur = 0;
-
-                // 2. Main body (lighter metallic effect)
-                ctx.beginPath();
-                ctx.arc(ball.x, ball.y, r * 0.9, 0, Math.PI * 2);
-                ctx.fillStyle = '#9999aa';
-                ctx.fill();
-                ctx.closePath();
-
-                // 3. Inner Detail (Grid/Panels)
-                ctx.strokeStyle = '#555566';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                // Vertical line
-                ctx.moveTo(ball.x, ball.y - r * 0.9);
-                ctx.lineTo(ball.x, ball.y + r * 0.9);
-                // Horizontal line
-                ctx.moveTo(ball.x - r * 0.9, ball.y);
-                ctx.lineTo(ball.x + r * 0.9, ball.y);
-                // 45 degree lines for grid effect
-                ctx.moveTo(ball.x - r * 0.6, ball.y - r * 0.6);
-                ctx.lineTo(ball.x + r * 0.6, ball.y + r * 0.6);
-                ctx.moveTo(ball.x + r * 0.6, ball.y - r * 0.6);
-                ctx.lineTo(ball.x - r * 0.6, ball.y + r * 0.6);
-                
-                ctx.stroke();
-
-                // 4. Laser Aperture / Glow (The hitting point)
-                ctx.beginPath();
-                ctx.arc(ball.x + r * 0.4, ball.y + r * 0.4, r * 0.3, 0, Math.PI * 2);
-                ctx.fillStyle = '#ff33cc';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#ff33cc';
-                ctx.fill();
-                ctx.closePath();
-                ctx.shadowBlur = 0; 
-            }
-
-            function drawPaddle() { 
-                // currentSaberW is the TOTAL effective width of the lightsaber paddle
-                const currentSaberW = gameState.isPaddleExtended ? 150 : gameState.paddleW;
-                const saberY = H - paddleH - 10; // Top edge of the 8px blade (Y-axis)
-                
-                const hiltHeight = paddleH + 5; // Hilt is 13px tall
-                
-                // For a single blade:
-                const bladeWidth = currentSaberW - hiltW; // Blade fills the remaining space
-                
-                // Hilt is placed on the left side of the total paddle area
-                const hiltX = gameState.paddleX;
-                
-                // Blade starts immediately to the right of the hilt
-                const bladeX = gameState.paddleX + hiltW;
-
-                // Calculate the vertical offset to center the hilt (13px) over the blade (8px)
-                // This value is (hiltHeight - paddleH) / 2 = (13 - 8) / 2 = 2.5px
-                const hiltOffset = (hiltHeight - paddleH) / 2;
-                
-                ctx.save();
-                
-                // --- 1. Draw Hilt (Now on the far left) ---
-                // Translate context to the start of the hilt, shifted UP by hiltOffset (2.5px)
-                ctx.translate(hiltX, saberY - hiltOffset); 
-
-                switch (gameState.currentSaberColor) {
-                    case 'red': 
-                        ctx.fillStyle = '#222222';
-                        ctx.fillRect(0, 0, hiltW, hiltHeight); 
-                        ctx.fillStyle = '#555555';
-                        ctx.fillRect(5, 2, 5, hiltHeight - 4);
-                        ctx.fillRect(15, 2, 15, hiltHeight - 4);
-                        ctx.fillStyle = '#cc0000';
-                        ctx.fillRect(hiltW - 5, 0, 5, hiltHeight); // Emitter detail
-                        ctx.fillStyle = '#cccccc';
-                        ctx.fillRect(hiltW - 2, 0, 2, hiltHeight); // Emitter edge
-                        break;
-
-                    case 'green': 
-                        ctx.fillStyle = '#B87333'; 
-                        ctx.fillRect(0, 0, hiltW, hiltHeight);
-                        ctx.fillStyle = '#3a1f0f';
-                        ctx.fillRect(3, 2, hiltW - 6, hiltHeight - 4);
-                        ctx.fillStyle = '#00ff00';
-                        ctx.fillRect(hiltW - 5, 0, 5, hiltHeight); // Emitter detail
-                        ctx.fillStyle = '#cccccc';
-                        ctx.fillRect(hiltW - 2, 0, 2, hiltHeight); // Emitter edge
-                        break; 
-
-                    case 'purple': 
-                        ctx.fillStyle = '#333333';
-                        ctx.fillRect(0, 0, hiltW, hiltHeight);
-                        ctx.fillStyle = '#FFD700'; 
-                        ctx.fillRect(5, 0, 5, hiltHeight); 
-                        ctx.fillRect(15, 0, 5, hiltHeight);
-                        ctx.fillStyle = '#cccccc';
-                        ctx.fillRect(hiltW * 0.8, 0, 2, hiltHeight); 
-                        ctx.fillStyle = '#cc00ff';
-                        ctx.beginPath();
-                        ctx.arc(hiltW * 0.6, hiltHeight / 2, 3, 0, Math.PI * 2);
-                        ctx.fill();
-                        break;
-                        
-                    case 'cyan': 
-                    default:
-                        ctx.fillStyle = '#777777'; 
-                        ctx.fillRect(0, 0, hiltW, hiltHeight);
-                        ctx.fillStyle = '#111111'; 
-                        const gripSpacing = hiltW / 4;
-                        ctx.fillRect(gripSpacing * 0.5, 2, gripSpacing * 0.5, hiltHeight - 4);
-                        ctx.fillRect(gripSpacing * 2.5, 2, gripSpacing * 0.5, hiltHeight - 4);
-                        ctx.fillStyle = '#cccccc'; 
-                        ctx.fillRect(hiltW * 0.8, 0, 2, hiltHeight); // Emitter edge
-                        break;
-                }
-                
-                ctx.restore(); // Restore context to (0, 0)
-                
-                // --- 2. Draw Blade (Single Segment to the right) ---
-                ctx.shadowBlur = 25; 
-                ctx.shadowColor = gameState.lightsaberColor;
-                
-                // Outer Blade
-                ctx.beginPath();
-                ctx.rect(bladeX, saberY, bladeWidth, paddleH);
-                ctx.fillStyle = gameState.lightsaberColor;
-                ctx.fill();
-                
-                // Inner Core
-                ctx.shadowBlur = 0;
-                const coreH = paddleH - 6;
-                const coreY = saberY + 3;
-                
-                ctx.rect(bladeX, coreY, bladeWidth, coreH);
-                ctx.fillStyle = '#ffffff'; 
-                ctx.fill();
-                
-                ctx.closePath();
-                ctx.shadowBlur = 0;
-            }
-            
-            function drawImperialShip(w, h, status, type) { 
-                const isDamaged = status < type;
-                const hullColor = isDamaged ? '#777788' : '#bbbbcc';
-                const detailColor = '#333344'; 
-
-                ctx.fillStyle = hullColor; 
-                ctx.strokeStyle = detailColor; 
-                ctx.lineWidth = 1;
-                
-                ctx.beginPath();
-                ctx.moveTo(w * 0.05, h / 2); 
-                ctx.lineTo(w * 0.9, 0); 
-                ctx.lineTo(w, h * 0.2); 
-                ctx.lineTo(w, h * 0.8);
-                ctx.lineTo(w * 0.9, h); 
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-
-                const towerW = w * 0.1;
-                const towerH = h * 0.3;
-                ctx.fillStyle = detailColor;
-                ctx.fillRect(w * 0.75, h / 2 - towerH / 2, towerW, towerH);
-                
-                const engineGlow = gameState.lightsaberColor; 
-                const engineSize = h * 0.2;
-                ctx.fillStyle = engineGlow; 
-                ctx.shadowBlur = 4;
-                ctx.shadowColor = engineGlow;
-                ctx.fillRect(w * 0.9, h * 0.2, w * 0.05, engineSize);
-                ctx.fillRect(w * 0.9, h * 0.8 - engineSize, w * 0.05, engineSize);
-
-                ctx.shadowBlur = 0; 
-                if (isDamaged) drawDamageCrack(w, h);
-            }
-
-            function drawTieFighter(w, h, status, type) { 
-                const isDamaged = status < type;
-                const wingW = w * 0.3;
-                const wingX1 = w * 0.05;
-                const wingX2 = w * 0.65;
-
-                ctx.fillStyle = isDamaged ? '#080808' : '#111111';
-                ctx.strokeStyle = '#ff33cc';
-                ctx.lineWidth = 1.5;
-                
-                function drawOctagonalWing(startX) {
-                    ctx.beginPath();
-                    ctx.moveTo(startX + wingW * 0.1, 0);
-                    ctx.lineTo(startX + wingW * 0.9, 0);
-                    ctx.lineTo(startX + wingW, h * 0.1);
-                    ctx.lineTo(startX + wingW, h * 0.9);
-                    ctx.lineTo(startX + wingW * 0.9, h);
-                    ctx.lineTo(startX + wingW * 0.1, h);
-                    ctx.lineTo(startX, h * 0.9);
-                    ctx.lineTo(startX, h * 0.1);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
-                }
-
-                drawOctagonalWing(wingX1); 
-                drawOctagonalWing(wingX2); 
-
-                ctx.fillStyle = '#666666'; 
-                ctx.beginPath();
-                ctx.arc(w / 2, h / 2, h * 0.4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = '#ff33cc';
-                ctx.beginPath();
-                ctx.arc(w / 2, h / 2, h * 0.2, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.strokeStyle = '#444444';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(w * 0.35, h / 2);
-                ctx.lineTo(w * 0.5 - h * 0.4, h / 2);
-                ctx.moveTo(w * 0.65, h / 2);
-                ctx.lineTo(w * 0.5 + h * 0.4, h / 2);
-                ctx.stroke();
-
-                ctx.shadowBlur = 0; 
-                if (isDamaged) drawDamageCrack(w, h);
-            }
-
-            function drawDreadnought(w, h, status, type) { 
-                const isDamaged = status < type;
-                ctx.fillStyle = isDamaged ? '#083308' : '#115511';
-                ctx.strokeStyle = '#00ff00';
-                ctx.lineWidth = 1;
-
-                ctx.fillRect(0, 0, w, h);
-                ctx.strokeRect(0, 0, w, h);
-
-                ctx.fillStyle = '#444444';
-                ctx.fillRect(w * 0.2, h * 0.1, w * 0.1, h * 0.8);
-                ctx.fillRect(w * 0.7, h * 0.1, w * 0.1, h * 0.8);
-                ctx.fillRect(w * 0.1, h * 0.4, w * 0.8, h * 0.2);
-
-                ctx.fillStyle = '#ff4545';
-                ctx.beginPath();
-                ctx.arc(w / 2, h / 2, h * 0.15, 0, Math.PI * 2);
-                ctx.fill();
-
-                if (isDamaged) drawDamageCrack(w, h);
-            }
-
-            function drawDamageCrack(w, h) { 
-                ctx.save();
-                ctx.strokeStyle = '#ff0000';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(w * 0.3, h * 0.3);
-                ctx.lineTo(w * 0.5, h * 0.7);
-                ctx.lineTo(w * 0.7, h * 0.2);
-                ctx.stroke();
-                ctx.restore();
-            }
-
-            function drawPowerUps() { 
-                for (const pu of gameState.powerUps) {
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(pu.x, pu.y, pu.r, 0, Math.PI * 2);
-                    ctx.fillStyle = PU_COLORS[pu.type];
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = PU_COLORS[pu.type];
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#000';
-                    ctx.font = "12px Inter";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    let text = '?';
-                    if (pu.type === PU_TYPE.EXTEND) text = 'W';
-                    else if (pu.type === PU_TYPE.MULTI) text = 'M';
-                    else if (pu.type === PU_TYPE.SHIELD) text = 'S';
-                    ctx.fillText(text, pu.x, pu.y + 1);
-                    ctx.restore();
-                }
-            }
-            
-            function initStars() { 
-                stars = [];
-                const numStars = (W * H) / 1000; 
-                for (let i = 0; i < numStars; i++) {
-                    stars.push({
-                        x: Math.random() * W,
-                        y: Math.random() * H,
-                        r: Math.random() * 1.5 + 0.5,
-                        color: Math.random() > 0.9 ? gameState.lightsaberColor : '#FFFFFF' 
-                    });
-                }
-            }
-            
-            function drawStars() { 
-                ctx.fillStyle = '#000000'; 
-                ctx.fillRect(0, 0, W, H);
-                
-                starScrollY += STAR_SPEED;
-                
-                ctx.fillStyle = 'rgba(0, 0, 50, 0.1)'; 
-                ctx.fillRect(0, 0, W, H);
-
-                for (let i = 0; i < stars.length; i++) {
-                    const star = stars[i];
-                    star.y += STAR_SPEED;
-                    if (star.y > H) {
-                        star.y = 0; 
-                        star.x = Math.random() * W;
-                        star.color = Math.random() > 0.9 ? gameState.lightsaberColor : '#FFFFFF';
-                    }
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-                    ctx.fillStyle = star.color;
-                    ctx.fill();
-                    ctx.closePath();
-                }
-            }
-
-            function drawParticles() { 
-                for (const p of gameState.particles) {
-                    ctx.save();
-                    ctx.globalAlpha = p.alpha;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                    ctx.restore();
-                }
-            }
-
-            function spawnParticles(px, py, color) { 
-                for (let i = 0; i < 20; i++) { 
-                    gameState.particles.push({
-                        x: px + brickW / 2,
-                        y: py + brickH / 2,
-                        vx: (Math.random() - 0.5) * 8, 
-                        vy: (Math.random() - 0.5) * 8,
-                        r: Math.random() * 2 + 1,
-                        alpha: 1,
-                        color: color
-                    });
-                }
-            }
-
-            function moveParticles() { 
-                for (let i = 0; i < gameState.particles.length; i++) {
-                    const p = gameState.particles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.1; 
-                    p.alpha -= 0.05;
-
-                    if (p.alpha <= 0) {
-                        gameState.particles.splice(i, 1);
-                        i--;
-                    }
-                }
-            }
-
-            function spawnPowerUp(x, y) { 
-                if (Math.random() < 0.15) { 
-                    const type = Math.floor(Math.random() * 3) + 1;
-                    gameState.powerUps.push({
-                        x: x + brickW / 2,
-                        y: y + brickH / 2,
-                        r: 10,
-                        type: type
-                    });
-                }
-            }
-            // --- END DRAWING & HELPER FUNCTIONS ---
-
-
-            // --- MAIN GAME LOOP ---
-            function draw() { 
-
-                // If waiting for launch, ball follows paddle
-                if (gameState.ballReady && gameState.balls.length > 0) {
-                    const ball = gameState.balls[0];
-                    ball.x = gameState.paddleX + (gameState.isPaddleExtended ? 150 : gameState.paddleW) / 2;
-                    ball.y = H - 10 - ballRadius - paddleH;
-                }
-                if (W === undefined) updateCanvasDimensions(); 
-                
-                drawStars();
-                
-                if (gameState.boss) drawBoss();
-                if (gameState.bricks.length > 0) drawBricks();
-
-                if (!gameState.running) {
-                    drawPowerUps(); 
-                    drawParticles(); 
-                    return;
-                }
-                
-                drawPowerUps();
-                drawParticles(); 
-                gameState.balls.forEach(drawBall);
-                drawPaddle(); 
-                
-                updateUI();
-            }
-
-            function loop() { 
-                if (performance.now() < gameState.shakeDuration) {
-                    // CSS handles the shake animation. We just ensure the class is present until duration expires.
-                } else {
-                    gameState.shakeDuration = 0;
-                    gameContainer.classList.remove('shake');
-                }
-
-                clampPaddleX(); 
-
-                if (gameState.running && gameState.levelComplete) {
-    gameState.running = false; // Stop main loop actions during transition
-    if (gameState.currentLevel < BOSS_LEVEL) {
-        nextLevel();
-    } else {
-        endGame(true); // Final victory sequence
+    function randomFrom(array) {
+      return array[Math.floor(Math.random() * array.length)];
     }
-    return; // Prevent further actions this frame
-}
-                
-                draw(); 
-                
-                if (gameState.running || gameState.particles.length > 0) {
-                    gameState.lastPaddleX = gameState.paddleX;
-                    moveBalls();
-                    movePowerUps();
-                    moveParticles();
-                }
 
-                requestAnimationFrame(loop);
-            }
-            
-            // --- INITIALIZATION ---
+    function skyTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      g.addColorStop(0, '#7da0b5');
+      g.addColorStop(0.32, '#b7b8b0');
+      g.addColorStop(0.6, '#e4bb81');
+      g.addColorStop(0.82, '#e8b06d');
+      g.addColorStop(1, '#d79b5e');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      return new THREE.CanvasTexture(canvas);
+    }
 
-            function init() {
-                updateCanvasDimensions();
-                
-                // Color Swatch Logic
-                if (colorSwatchesContainer) {
-                    colorSwatchesContainer.addEventListener('click', (e) => {
-                        const target = e.target.closest('.color-swatch');
-                        if (target) {
-                            updateSaberColor(target.dataset.color);
-                        }
-                    });
-                    updateSaberColor(gameState.currentSaberColor);
-                }
-                
-                window.addEventListener('resize', updateCanvasDimensions); 
-                document.addEventListener('mousemove', mouseMoveHandler, false);
-                canvas.addEventListener('touchmove', touchMoveHandler, { passive: false });
-                
-                messageText.innerHTML = "WELCOME TO SABER BREAKER!<br>DESTROY THE IMPERIAL FLEET WITH YOUR LIGHTSABER.";
-                overlayButton.textContent = "BEGIN MISSION";
-                messageOverlay.classList.add('active');
-                
-                startButton.onclick = startGame;
-                overlayButton.onclick = startGame; 
+    // ------------------------------------------------------------
+    // UI / HUD
+    // ------------------------------------------------------------
+    function showThought(text, forceNext = false) {
+      const nextThought = text || (() => {
+        if (state.thoughts.length === 1) return state.thoughts[0];
+        let nextIndex = state.activeThoughtIndex;
+        while (nextIndex === state.activeThoughtIndex) {
+          nextIndex = Math.floor(Math.random() * state.thoughts.length);
+        }
+        state.activeThoughtIndex = nextIndex;
+        return state.thoughts[nextIndex];
+      })();
 
-                loop();
-                canvas.addEventListener('click', () => {
-                    if (gameState.ballReady && gameState.balls.length > 0) {
-                        const ball = gameState.balls[0];
-                        const speed = 4.0;
-                        const angle = (Math.random() * Math.PI) / 3 + Math.PI / 6; // Launch upward with some angle
-                        ball.dx = speed * Math.cos(angle) * (Math.random() < 0.5 ? 1 : -1);
-                canvas.addEventListener('touchstart', () => {
-                    if (gameState.ballReady && gameState.balls.length > 0) {
-                        const ball = gameState.balls[0];
-                        const speed = 4.0;
-                        const angle = (Math.random() * Math.PI) / 3 + Math.PI / 6;
-                        ball.dx = speed * Math.cos(angle) * (Math.random() < 0.5 ? 1 : -1);
-                        ball.dy = -Math.abs(speed * Math.sin(angle));
-                        gameState.ballReady = false;
-                        document.getElementById('launchMessage').style.display = 'none';
-                    }
-                });
-                        ball.dy = -Math.abs(speed * Math.sin(angle));
-                        
-                        gameState.ballReady = false;
-                        document.getElementById('launchMessage').style.display = 'none';
-                    }
-                });
- 
-            }
+      if (forceNext && !text && state.thoughts.length > 1) {
+        let nextIndex = state.activeThoughtIndex;
+        while (nextIndex === state.activeThoughtIndex) {
+          nextIndex = Math.floor(Math.random() * state.thoughts.length);
+        }
+        state.activeThoughtIndex = nextIndex;
+        el.thought.textContent = state.thoughts[nextIndex];
+      } else {
+        el.thought.textContent = nextThought;
+      }
 
-            // --- INPUT HANDLERS ---
-            function mouseMoveHandler(e) {
-                if (!gameState.running) return;
-                const relativeX = e.clientX - canvas.getBoundingClientRect().left;
-                
-                // Use the total width of the saber for centering the input
-                const currentSaberW = gameState.isPaddleExtended ? 150 : gameState.paddleW;
+      el.thought.classList.add('show');
+      clearTimeout(showThought._hideTimer);
+      clearTimeout(showThought._cooldownTimer);
+      showThought._hideTimer = setTimeout(() => el.thought.classList.remove('show'), 3200);
+      showThought._cooldownTimer = setTimeout(() => { state.shownThought = false; }, 5000);
+      state.shownThought = true;
+    }
 
-                if (relativeX > 0 && relativeX < W) {
-                    gameState.paddleX = relativeX - currentSaberW / 2;
-                }
-            }
+    function unlockAchievement(id, name, desc) {
+      if (state.unlocked.has(id)) return;
+      state.unlocked.add(id);
+      el.achievementName.textContent = name;
+      el.achievementDesc.textContent = desc;
+      el.achievement.classList.add('show');
+      setTimeout(() => el.achievement.classList.remove('show'), 3500);
+    }
 
-            function touchMoveHandler(e) {
-                if (!gameState.running || e.touches.length === 0) return;
-                e.preventDefault(); 
-                
-                const touch = e.touches[0];
-                const relativeX = touch.clientX - canvas.getBoundingClientRect().left;
+    function updateHUD(ms) {
+      const wholeSeconds = Math.floor(ms / 1000);
+      state.points = wholeSeconds;
 
-                // Use the total width of the saber for centering the input
-                const currentSaberW = gameState.isPaddleExtended ? 150 : gameState.paddleW;
+      el.timer.textContent = formatElapsedLabel(ms);
+      el.points.textContent = state.points.toLocaleString();
+      el.temp.textContent = `${28 + Math.round(Math.sin(ms * 0.00015) * 1)}°C`;
 
-                if (relativeX > 0 && relativeX < W) {
-                    gameState.paddleX = relativeX - currentSaberW / 2;
-                }
-            }
-            // --- END INPUT HANDLERS ---
-            
-            window.onload = init;
-        })();
-    </script>
+      if (wholeSeconds > 0 && wholeSeconds % 12 === 0 && !state.shownThought) {
+        showThought();
+      }
+
+      if (wholeSeconds === 10) {
+        unlockAchievement('settled', 'Settled In', 'You remained convincingly coconut.');
+      }
+
+      if (wholeSeconds === 60) {
+        unlockAchievement('minute', 'Minute of Purpose', 'A full minute of elite observation.');
+      }
+    }
+
+    // ------------------------------------------------------------
+    // SCENE SETUP
+    // ------------------------------------------------------------
+    function initRenderer() {
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      document.getElementById('canvas-container').appendChild(renderer.domElement);
+    }
+
+    function initScene() {
+      scene = new THREE.Scene();
+      scene.background = skyTexture();
+      scene.fog = new THREE.FogExp2(0xd9bc97, 0.0115);
+
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+      camera.position.set(0, 1.42, 5.7);
+      camera.lookAt(0, 0.9, -9.8);
+    }
+
+    function initLights() {
+      scene.add(new THREE.HemisphereLight(0xffd9a8, 0x4d6f84, 0.9));
+      scene.add(new THREE.AmbientLight(0xfff1dc, 0.22));
+
+      const sun = new THREE.DirectionalLight(0xffc97a, 1.95);
+      sun.position.set(34, 18, 10);
+      sun.castShadow = true;
+      sun.shadow.mapSize.width = 2048;
+      sun.shadow.mapSize.height = 2048;
+      sun.shadow.camera.left = -70;
+      sun.shadow.camera.right = 70;
+      sun.shadow.camera.top = 70;
+      sun.shadow.camera.bottom = -70;
+      sun.shadow.camera.far = 170;
+      scene.add(sun);
+
+      sunMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(5.4, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffd38a, fog: false, transparent: true, opacity: 0.98 })
+      );
+      sunMesh.position.set(0, 9.4, -28);
+      scene.add(sunMesh);
+    }
+
+    function initBeach() {
+      const geometry = new THREE.PlaneGeometry(190, 126, 260, 170);
+      const pos = geometry.attributes.position;
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        let z = Math.sin(x * 0.08) * 0.08 + Math.cos(y * 0.06) * 0.07;
+
+        const nest = Math.hypot(x, y + 6);
+        if (nest < 2.1) z -= (2.1 - nest) * 0.06;
+
+        const shoreBlend = THREE.MathUtils.smoothstep(y, -18, -5);
+        z -= shoreBlend * 0.62;
+        pos.setZ(i, z);
+      }
+
+      geometry.computeVertexNormals();
+      const material = new THREE.MeshStandardMaterial({ color: 0xddc298, roughness: 1, metalness: 0 });
+      const beach = new THREE.Mesh(geometry, material);
+      beach.rotation.x = -Math.PI / 2;
+      beach.receiveShadow = true;
+      scene.add(beach);
+    }
+
+    function initOcean() {
+      const geometry = new THREE.PlaneGeometry(520, 240, 230, 120);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x4c7f90,
+        roughness: 0.22,
+        metalness: 0.08,
+        transparent: true,
+        opacity: 0.94
+      });
+
+      ocean = new THREE.Mesh(geometry, material);
+      ocean.rotation.x = -Math.PI / 2;
+      ocean.position.set(0, -0.88, -22.5);
+      scene.add(ocean);
+
+      shoreFoam = new THREE.Mesh(
+        new THREE.PlaneGeometry(180, 8, 80, 1),
+        new THREE.MeshBasicMaterial({ color: 0xfff4df, transparent: true, opacity: 0.18 })
+      );
+      shoreFoam.rotation.x = -Math.PI / 2;
+      shoreFoam.position.set(0, -0.1, -2.9);
+      scene.add(shoreFoam);
+    }
+
+    function initCoconut() {
+      coconut = new THREE.Group();
+
+      const shellGeo = new THREE.SphereGeometry(1.0, 48, 48);
+      shellGeo.scale(0.88, 1.14, 0.88);
+      const shell = new THREE.Mesh(
+        shellGeo,
+        new THREE.MeshStandardMaterial({ color: 0x4a2d1b, roughness: 0.98 })
+      );
+      shell.castShadow = true;
+      coconut.add(shell);
+
+      const fiberGeo = new THREE.SphereGeometry(1.03, 48, 48);
+      fiberGeo.scale(0.89, 1.15, 0.89);
+      const fiber = new THREE.Mesh(
+        fiberGeo,
+        new THREE.MeshStandardMaterial({ color: 0x8a5a32, roughness: 1, transparent: true, opacity: 0.14 })
+      );
+      coconut.add(fiber);
+
+      for (let i = 0; i < 3; i++) {
+        const eye = new THREE.Mesh(
+          new THREE.CircleGeometry(0.1, 20),
+          new THREE.MeshStandardMaterial({ color: 0x2b180f, roughness: 1 })
+        );
+        eye.position.set((i - 1) * 0.2, 0.18 - i * 0.08, 0.81);
+        coconut.add(eye);
+      }
+
+      coconut.position.set(0, 0.86, 0.62);
+      coconut.scale.set(1.34, 1.34, 1.34);
+      scene.add(coconut);
+    }
+
+    // ------------------------------------------------------------
+    // BACKGROUND SCATTER
+    // ------------------------------------------------------------
+    function createPalm(x, z, height, lean) {
+      const group = new THREE.Group();
+
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.17, 0.32, height, 8, 14),
+        new THREE.MeshStandardMaterial({ color: 0x3b281e, roughness: 1 })
+      );
+      trunk.position.y = height / 2;
+      trunk.rotation.z = lean;
+      trunk.castShadow = true;
+      group.add(trunk);
+
+      const top = new THREE.Vector3(Math.sin(lean) * (height * 0.45), height, 0);
+      for (let i = 0; i < 7; i++) {
+        const leaf = new THREE.Mesh(
+          new THREE.PlaneGeometry(4.8, 0.8, 10, 1),
+          new THREE.MeshStandardMaterial({
+            color: i % 2 ? 0x243a21 : 0x2e4728,
+            side: THREE.DoubleSide,
+            roughness: 1
+          })
+        );
+        leaf.position.copy(top);
+        leaf.rotation.x = -0.65;
+        leaf.rotation.y = (Math.PI * 2 * i) / 7;
+        leaf.rotation.z = -0.3;
+        leaf.castShadow = true;
+        group.add(leaf);
+      }
+
+      group.position.set(x, 0, z);
+      group.rotation.y = (x + z) * 0.06;
+      return group;
+    }
+
+    function createBird(x, y, z, scale = 1) {
+      const bird = new THREE.Group();
+      const wingMat = new THREE.MeshBasicMaterial({ color: 0x2f241d, fog: true });
+
+      const leftWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
+      leftWing.position.set(-0.35, 0, 0);
+      leftWing.rotation.z = 0.22;
+
+      const rightWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
+      rightWing.position.set(0.35, 0, 0);
+      rightWing.rotation.z = -0.22;
+
+      bird.add(leftWing, rightWing);
+      bird.position.set(x, y, z);
+      bird.scale.setScalar(scale);
+      bird.userData = {
+        flapOffset: Math.random() * Math.PI * 2,
+        driftOffset: Math.random() * Math.PI * 2,
+        speed: 0.08 + Math.random() * 0.04,
+        wingSpan: 0.45 + Math.random() * 0.18
+      };
+      return bird;
+    }
+
+    function initBackground() {
+      palmGroup = new THREE.Group();
+      [
+        [-54, -8, 11, 0.16], [-43, -14, 12, 0.18], [-34, -21, 12, 0.23], [-25, -29, 13, 0.18],
+        [-13, -12, 9, 0.12], [6, -15, 10, 0.16], [18, -10, 12, 0.18], [28, -14, 13, 0.24],
+        [37, -8, 15, 0.2], [46, -12, 14, 0.26], [58, -5, 18, 0.28], [64, -16, 16, 0.22],
+        [16, -25, 12, 0.18], [34, -27, 13, 0.22], [-47, -27, 15, 0.25], [-60, -17, 17, 0.26]
+      ].forEach(args => palmGroup.add(createPalm(...args)));
+      scene.add(palmGroup);
+
+      hutGroup = new THREE.Group();
+      const hutMat = new THREE.MeshStandardMaterial({ color: 0x35251b, roughness: 1 });
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x5c462b, roughness: 1 });
+
+      [
+        [-47, -19, 1.05], [-35, -22, 1.2], [-18, -21, 1.38], [1, -23, 1.18], [18, -19, 1.48], [34, -18, 1.22]
+      ].forEach(([x, z, s]) => {
+        const hut = new THREE.Group();
+
+        const base = new THREE.Mesh(new THREE.BoxGeometry(3.2 * s, 1.7 * s, 2.4 * s), hutMat);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(2.5 * s, 1.8 * s, 4), roofMat);
+        base.position.y = 1.3 * s;
+        roof.position.y = 2.95 * s;
+        roof.rotation.y = Math.PI / 4;
+        base.castShadow = true;
+        roof.castShadow = true;
+
+        hut.add(base, roof);
+        hut.position.set(x, 0, z);
+        hut.rotation.y = Math.random() * Math.PI;
+        hutGroup.add(hut);
+      });
+      scene.add(hutGroup);
+
+      birdGroup = new THREE.Group();
+      [
+        [-10, 8.7, -18, 0.72], [-2, 9.1, -17, 0.66], [10, 9.5, -19, 0.6],
+        [19, 8.5, -16.5, 0.7], [28, 9.0, -20, 0.62]
+      ].forEach(args => birdGroup.add(createBird(...args)));
+      scene.add(birdGroup);
+
+      const rockGeo = new THREE.DodecahedronGeometry(0.5, 0);
+      const rockMat = new THREE.MeshStandardMaterial({ color: 0x5a4334, roughness: 1 });
+
+      for (let i = 0; i < 7; i++) {
+        const rock = new THREE.Mesh(rockGeo, rockMat);
+        rock.scale.setScalar(0.7 + Math.random() * 1.7);
+        rock.position.set(18 + Math.random() * 42, 0.25, -1 - Math.random() * 10);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true;
+        scene.add(rock);
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const rock = new THREE.Mesh(rockGeo, rockMat);
+        rock.scale.setScalar(0.6 + Math.random() * 1.2);
+        rock.position.set(-14 - Math.random() * 24, 0.22, -2 - Math.random() * 9);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true;
+        scene.add(rock);
+      }
+    }
+
+    // ------------------------------------------------------------
+    // ANIMATION
+    // ------------------------------------------------------------
+    function animateOcean(t) {
+      const pos = ocean.geometry.attributes.position;
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const farSwell = Math.sin(x * 0.05 + t * 0.72) * 0.34;
+        const crossSwell = Math.cos(y * 0.08 + t * 0.46) * 0.22;
+        const nearRipple = Math.sin((x + y) * 0.04 + t * 1.18) * 0.15;
+        const banding = Math.sin(y * 0.12 + t * 0.62) * 0.08;
+        pos.setZ(i, farSwell + crossSwell + nearRipple + banding);
+      }
+
+      pos.needsUpdate = true;
+      ocean.geometry.computeVertexNormals();
+
+      shoreFoam.material.opacity = 0.15 + Math.sin(t * 1.4) * 0.035;
+      shoreFoam.position.z = -2.9 + Math.sin(t * 0.9) * 0.14;
+      shoreFoam.position.x = Math.sin(t * 0.55) * 0.12;
+      shoreFoam.material.rotation = Math.sin(t * 0.4) * 0.01;
+      ocean.material.opacity = 0.9 + Math.sin(t * 0.3) * 0.015;
+    }
+
+    function animateEnvironment(t) {
+      palmGroup.children.forEach((palm, i) => {
+        palm.rotation.z = Math.sin(t * 0.55 + i * 0.6) * 0.008;
+        palm.rotation.y += Math.sin(t * 0.18 + i) * 0.00008;
+      });
+
+      hutGroup.children.forEach((hut, i) => {
+        hut.position.y = Math.sin(t * 0.35 + i * 0.8) * 0.01;
+      });
+
+      birdGroup.children.forEach((bird, i) => {
+        const d = bird.userData;
+        bird.position.x += Math.sin(t * d.speed + d.driftOffset + i * 0.2) * 0.006;
+        bird.position.y += Math.cos(t * (d.speed * 1.7) + d.driftOffset) * 0.003;
+        bird.position.z += Math.sin(t * (d.speed * 0.8) + i) * 0.004;
+        bird.children[0].rotation.z = 0.18 + Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
+        bird.children[1].rotation.z = -0.18 - Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
+      });
+    }
+
+    function animateHero(t) {
+      coconut.rotation.y += 0.0012;
+      coconut.position.y = 0.86 + Math.sin(t * 0.9) * 0.012;
+      coconut.rotation.z = Math.sin(t * 0.42) * 0.012;
+    }
+
+    function animateCamera(t) {
+      camera.position.x = Math.sin(t * 0.12) * 0.035;
+      camera.position.y = 1.42 + Math.cos(t * 0.1) * 0.02;
+      camera.lookAt(0, 0.9, -9.8);
+    }
+
+    function animateSun(t) {
+      sunMesh.scale.setScalar(1 + Math.sin(t * 0.28) * 0.02);
+      sunMesh.position.y = 9.4 + Math.sin(t * 0.12) * 0.06;
+    }
+
+    function tick() {
+      requestAnimationFrame(tick);
+      const t = clock.getElapsedTime();
+      const ms = performance.now() - state.startTime;
+
+      updateHUD(ms);
+      animateOcean(t);
+      animateEnvironment(t);
+      animateHero(t);
+      animateCamera(t);
+      animateSun(t);
+
+      renderer.render(scene, camera);
+    }
+
+    // ------------------------------------------------------------
+    // EVENTS
+    // ------------------------------------------------------------
+    function bindEvents() {
+      el.ponder.addEventListener('click', () => {
+        state.startTime -= 5000;
+        showThought(null, true);
+        unlockAchievement('ponder', 'First Ponder', 'You committed to the bit.');
+        el.ponder.blur();
+      });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      });
+    }
+
+    // ------------------------------------------------------------
+    // BOOT
+    // ------------------------------------------------------------
+    function boot() {
+      clock = new THREE.Clock();
+      initRenderer();
+      initScene();
+      initLights();
+      initBeach();
+      initOcean();
+      initCoconut();
+      initBackground();
+      bindEvents();
+      state.activeThoughtIndex = 0;
+      showThought('The horizon remains unavailable.');
+      tick();
+    }
+
+    boot();
+  </script>
 </body>
 </html>
