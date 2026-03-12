@@ -259,36 +259,47 @@
     .ponder-btn {
       pointer-events: auto;
       position: relative;
-      min-width: 210px;
-      height: 62px;
-      padding: 0 22px;
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 18px;
+      min-width: 224px;
+      height: 68px;
+      padding: 0 24px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 20px;
       background:
-        linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05)),
-        linear-gradient(180deg, rgba(160,220,255,0.14), rgba(255,255,255,0.02));
+        linear-gradient(180deg, rgba(36,48,58,0.92), rgba(22,28,34,0.94));
       color: #ffffff;
       font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 14px 28px rgba(0,0,0,0.22), 0 0 36px rgba(120,210,255,0.12);
-      backdrop-filter: blur(16px) saturate(140%);
-      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        0 18px 38px rgba(0,0,0,0.34),
+        0 0 0 1px rgba(0,0,0,0.18),
+        0 10px 26px rgba(0,0,0,0.22);
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
       transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, filter 0.16s ease;
       overflow: hidden;
       isolation: isolate;
     }
 
     .ponder-btn:hover {
-      transform: translateY(-2px) scale(1.01);
-      border-color: rgba(200,240,255,0.26);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 18px 34px rgba(0,0,0,0.24), 0 0 46px rgba(120,210,255,0.18);
-      filter: brightness(1.04);
+      transform: translateY(-3px) scale(1.015);
+      border-color: rgba(210,240,255,0.30);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        0 22px 44px rgba(0,0,0,0.38),
+        0 0 0 1px rgba(130,200,240,0.18),
+        0 0 30px rgba(90,170,220,0.18);
+      filter: brightness(1.05);
     }
 
     .ponder-btn:active {
       transform: translateY(1px) scale(0.995);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        0 10px 18px rgba(0,0,0,0.24),
+        0 0 18px rgba(90,170,220,0.12);
     }
 
     .corner-mark {
@@ -435,13 +446,14 @@
       </div>
 
       <button id="ponder-button" class="ponder-btn">
-        <span style="position:absolute;inset:0;background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 28%, transparent 52%);transform:translateX(-120%);animation:ponderSweep 5.5s ease-in-out infinite;z-index:0;"></span>
-        <span style="position:absolute;inset:1px;border-radius:17px;background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));z-index:0;"></span>
-        <span style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;">
-          <span style="display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:linear-gradient(180deg, rgba(210,240,255,0.18), rgba(255,255,255,0.04));border:1px solid rgba(210,240,255,0.16);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);font-size:16px;">✦</span>
+        <span style="position:absolute;inset:1px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));z-index:0;"></span>
+        <span style="position:absolute;left:0;right:0;top:0;height:1px;background:rgba(255,255,255,0.16);z-index:1;"></span>
+        <span style="position:absolute;inset:0;background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.10) 28%, transparent 52%);transform:translateX(-120%);animation:ponderSweep 4.6s ease-in-out infinite;z-index:0;"></span>
+        <span style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:14px;width:100%;">
+          <span style="display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:linear-gradient(180deg, rgba(95,135,165,0.55), rgba(52,76,94,0.92));border:1px solid rgba(210,240,255,0.18);box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 14px rgba(0,0,0,0.18);font-size:17px;color:#ffffff;">✦</span>
           <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1;">
-            <span style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(210,240,255,0.72);margin-bottom:6px;">Engage</span>
-            <span style="font-size:15px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#ffffff;">Ponder</span>
+            <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(190,220,235,0.72);margin-bottom:6px;">Primary Action</span>
+            <span style="font-size:16px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#ffffff;">Ponder</span>
           </span>
         </span>
       </button>
