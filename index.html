@@ -627,6 +627,27 @@
       ]
     };
 
+    function saveProgress() {
+      const ms = performance.now() - state.startTime;
+      const progress = {
+        elapsedMs: ms,
+        unlocked: Array.from(state.unlocked)
+      };
+      document.cookie = `coconutProgress=${encodeURIComponent(JSON.stringify(progress))}; max-age=31536000; path=/`;
+    }
+
+    function loadProgress() {
+      const cookie = document.cookie.split('; ').find(c => c.startsWith('coconutProgress='));
+      if (!cookie) return;
+      try {
+        const progress = JSON.parse(decodeURIComponent(cookie.split('=')[1]));
+        state.startTime = performance.now() - progress.elapsedMs;
+        state.unlocked = new Set(progress.unlocked);
+      } catch (e) {
+        // Invalid cookie, ignore
+      }
+    }
+
     let scene, camera, renderer, clock;
     let coconut, ocean, palmGroup, hutGroup, shoreFoam, sunMesh, birdGroup;
     let hemiLight, ambientLight, sunLight, beachMesh, moonMesh, starField;
@@ -1419,6 +1440,8 @@
     }
 
     function bindEvents() {
+      window.addEventListener('beforeunload', saveProgress);
+
       el.ponder.addEventListener('click', () => {
         state.startTime -= 5000;
         showThought();
@@ -1522,6 +1545,8 @@
 
     function boot() {
       clock = new THREE.Clock();
+
+      loadProgress();
 
       initRenderer();
       initScene();
