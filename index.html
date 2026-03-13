@@ -2313,6 +2313,11 @@
 
       loadProgress();
 
+      posthog.identify(state.username, {
+        username: state.username,
+        returning: state.loadedFromCookie
+      });
+
       initRenderer();
       initScene();
       initOrbitControls();
