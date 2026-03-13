@@ -712,7 +712,18 @@
         'The island respects your inactivity.',
         'Every second here is operational excellence.',
         'The surf continues its unpaid performance.',
-        'You are watching premium sand in real time.'
+        'You are watching premium sand in real time.',
+        'The clouds drift with managerial confidence.',
+        'A sailboat passes. It does not stop.',
+        'This sunset was not optimised. It is perfect anyway.',
+        'Fireflies are just stars that gave up on career goals.',
+        'The palm trees sway with quiet authority.',
+        'A wave crashes. Nobody files a report.',
+        'Your coconut holds steady. As it should.',
+        'The moon takes its shift without complaint.',
+        'Sand temperature nominal. Ambient vibes online.',
+        'A starfish considers its life choices nearby.',
+        'The driftwood has seen things. It will not elaborate.'
       ]
     };
 
@@ -757,6 +768,8 @@
     let coconut, ocean, palmGroup, hutGroup, shoreFoam, sunMesh, birdGroup;
     let hemiLight, ambientLight, sunLight, beachMesh, moonMesh, starField;
     let orbitState;
+    let cloudGroup, fireflyGroup, sailboatGroup, waveSprayGroup, vegetationGroup;
+    let secondaryFoam, tertiaryFoam;
 
     function isMobileViewport() {
       return window.innerWidth <= 640;
@@ -886,6 +899,18 @@
 
       if (wholeSeconds === 60) {
         unlockAchievement('minute', 'Minute of Purpose', 'A full minute of elite observation.');
+      }
+
+      if (wholeSeconds === 180) {
+        unlockAchievement('three_min', 'Deeply Committed', 'Three minutes. The coconut respects your dedication.');
+      }
+
+      if (wholeSeconds === 600) {
+        unlockAchievement('ten_min', 'Coconut Philosopher', 'Ten minutes of premium stillness achieved.');
+      }
+
+      if (wholeSeconds === 1800) {
+        unlockAchievement('half_hour', 'Island Ascended', 'Thirty minutes. You have transcended idle gaming.');
       }
     }
 
@@ -1053,6 +1078,23 @@
       ocean.position.set(0, -0.88, -22.5);
       scene.add(ocean);
 
+      // Ocean specular highlight plane
+      const specularMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.06,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      const specular = new THREE.Mesh(
+        new THREE.PlaneGeometry(40, 60, 1, 1),
+        specularMat
+      );
+      specular.rotation.x = -Math.PI / 2;
+      specular.position.set(0, -0.82, -22);
+      specular.userData = { isOceanSpecular: true };
+      scene.add(specular);
+
       shoreFoam = new THREE.Mesh(
         new THREE.PlaneGeometry(180, 8, 80, 1),
         new THREE.MeshBasicMaterial({ color: 0xfff4df, transparent: true, opacity: 0.18 })
@@ -1092,14 +1134,12 @@
 
       // More realistic coconut material with enhanced subsurface scattering
       const bodyMat = new THREE.MeshStandardMaterial({
-        color: 0x3a2418, // Even more realistic dark brown
-        roughness: 0.88,
-        metalness: 0.015,
+        color: 0x3a2418,
+        roughness: 0.78,
+        metalness: 0.025,
         flatShading: false,
-        // Enhanced subsurface scattering effect
         emissive: 0x1a0f08,
-        emissiveIntensity: 0.03,
-        // Add some color variation
+        emissiveIntensity: 0.05,
         transparent: false
       });
 
@@ -1107,6 +1147,20 @@
       body.castShadow = true;
       body.receiveShadow = true;
       coconut.add(body);
+
+      // Specular highlight shell (gives a nice wet/polished look)
+      const sheenGeo = bodyGeo.clone();
+      const sheenMat = new THREE.MeshStandardMaterial({
+        color: 0x5a3a22,
+        roughness: 0.35,
+        metalness: 0.12,
+        transparent: true,
+        opacity: 0.15,
+        depthWrite: false
+      });
+      const sheen = new THREE.Mesh(sheenGeo, sheenMat);
+      sheen.scale.setScalar(1.005);
+      coconut.add(sheen);
 
       // Enhanced fiber system - more fibers, varied lengths and thicknesses
       const fiberMat = new THREE.MeshStandardMaterial({
@@ -1382,32 +1436,82 @@
     function createPalm(x, z, height, lean) {
       const group = new THREE.Group();
 
+      // Trunk with rings
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3b281e, roughness: 1 });
       const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.17, 0.32, height, 8, 14),
-        new THREE.MeshStandardMaterial({ color: 0x3b281e, roughness: 1 })
+        trunkMat
       );
       trunk.position.y = height / 2;
       trunk.rotation.z = lean;
       trunk.castShadow = true;
       group.add(trunk);
 
+      // Trunk ring details
+      const ringMat = new THREE.MeshStandardMaterial({ color: 0x2a1c14, roughness: 1, transparent: true, opacity: 0.5 });
+      for (let r = 0; r < 8; r++) {
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.19 + r * 0.002, 0.012, 6, 12),
+          ringMat
+        );
+        ring.position.y = 1 + r * (height / 10);
+        ring.rotation.x = Math.PI / 2;
+        ring.rotation.z = lean;
+        group.add(ring);
+      }
+
       const top = new THREE.Vector3(Math.sin(lean) * (height * 0.45), height, 0);
 
-      for (let i = 0; i < 7; i++) {
+      // More fronds with varied sizes and proper drooping
+      const frondCount = 11;
+      for (let i = 0; i < frondCount; i++) {
+        const isInner = i >= 7;
+        const frondLen = isInner ? 3.2 + Math.random() * 1.2 : 4.8 + Math.random() * 1.5;
+        const frondWidth = isInner ? 0.5 : 0.7 + Math.random() * 0.2;
+        const leafGeo = new THREE.PlaneGeometry(frondLen, frondWidth, 12, 1);
+
+        // Add droop to the frond by bending vertices
+        const lpos = leafGeo.attributes.position;
+        for (let v = 0; v < lpos.count; v++) {
+          const lx = lpos.getX(v);
+          const progress = (lx + frondLen / 2) / frondLen;
+          lpos.setZ(v, -Math.pow(progress, 2.2) * 1.8);
+        }
+        leafGeo.computeVertexNormals();
+
+        const greenShade = Math.random();
         const leaf = new THREE.Mesh(
-          new THREE.PlaneGeometry(4.8, 0.8, 10, 1),
+          leafGeo,
           new THREE.MeshStandardMaterial({
-            color: i % 2 ? 0x243a21 : 0x2e4728,
+            color: greenShade > 0.5 ? 0x243a21 : greenShade > 0.25 ? 0x2e4728 : 0x1e3018,
             side: THREE.DoubleSide,
-            roughness: 1
+            roughness: 0.95
           })
         );
         leaf.position.copy(top);
-        leaf.rotation.x = -0.65;
-        leaf.rotation.y = (Math.PI * 2 * i) / 7;
-        leaf.rotation.z = -0.3;
+        const droopAngle = isInner ? -0.35 : -0.65 - Math.random() * 0.15;
+        leaf.rotation.x = droopAngle;
+        leaf.rotation.y = (Math.PI * 2 * i) / frondCount + (Math.random() - 0.5) * 0.15;
+        leaf.rotation.z = -0.25 + (Math.random() - 0.5) * 0.1;
         leaf.castShadow = true;
         group.add(leaf);
+      }
+
+      // Coconut cluster at the top
+      const coconutClusterMat = new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.85, metalness: 0.02 });
+      for (let c = 0; c < 3; c++) {
+        const nut = new THREE.Mesh(
+          new THREE.SphereGeometry(0.22, 8, 8),
+          coconutClusterMat
+        );
+        const cAngle = (c / 3) * Math.PI * 2 + 0.4;
+        nut.position.set(
+          top.x + Math.cos(cAngle) * 0.28,
+          top.y - 0.5 - c * 0.15,
+          Math.sin(cAngle) * 0.28
+        );
+        nut.scale.set(1, 1.15, 0.9);
+        group.add(nut);
       }
 
       group.position.set(x, 0, z);
@@ -1549,6 +1653,332 @@
       }
 
       addFarEnvironmentRing();
+      initClouds();
+      initBeachDetails();
+      initSailboat();
+      initFireflies();
+      initWaveSpray();
+      initVegetation();
+    }
+
+    function initClouds() {
+      cloudGroup = new THREE.Group();
+
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 1,
+        metalness: 0,
+        transparent: true,
+        opacity: 0.65,
+        depthWrite: false
+      });
+
+      function makeCloud(x, y, z, scale) {
+        const cloud = new THREE.Group();
+        const puffCount = 5 + Math.floor(Math.random() * 6);
+        for (let i = 0; i < puffCount; i++) {
+          const puff = new THREE.Mesh(
+            new THREE.SphereGeometry(1.8 + Math.random() * 2.2, 12, 12),
+            cloudMat
+          );
+          puff.position.set(
+            (Math.random() - 0.5) * 6,
+            (Math.random() - 0.3) * 1.8,
+            (Math.random() - 0.5) * 3
+          );
+          puff.scale.y = 0.45 + Math.random() * 0.25;
+          cloud.add(puff);
+        }
+        cloud.position.set(x, y, z);
+        cloud.scale.setScalar(scale);
+        cloud.userData = { baseX: x, speed: 0.15 + Math.random() * 0.25, range: 60 + Math.random() * 40 };
+        return cloud;
+      }
+
+      const cloudSpecs = [
+        [-45, 22, -55, 1.8], [-15, 26, -65, 2.2], [25, 20, -50, 1.5],
+        [55, 28, -70, 2.0], [-70, 24, -60, 1.6], [80, 22, -55, 1.4],
+        [0, 30, -80, 2.5], [-30, 18, -45, 1.2], [40, 25, -75, 1.9],
+        [-55, 32, -85, 2.1], [65, 19, -42, 1.3], [10, 27, -72, 1.7]
+      ];
+
+      cloudSpecs.forEach(args => cloudGroup.add(makeCloud(...args)));
+      scene.add(cloudGroup);
+    }
+
+    function initBeachDetails() {
+      // Seashells
+      const shellMat = new THREE.MeshStandardMaterial({ color: 0xf0e0c8, roughness: 0.6, metalness: 0.05 });
+      const shellMat2 = new THREE.MeshStandardMaterial({ color: 0xe8c8a0, roughness: 0.7, metalness: 0.02 });
+
+      for (let i = 0; i < 18; i++) {
+        const shell = new THREE.Mesh(
+          new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 8, 6),
+          Math.random() > 0.5 ? shellMat : shellMat2
+        );
+        shell.scale.set(1, 0.3 + Math.random() * 0.3, 1.2 + Math.random() * 0.5);
+        shell.position.set(
+          (Math.random() - 0.5) * 50,
+          0.02 + Math.random() * 0.04,
+          -1 + Math.random() * 6
+        );
+        shell.rotation.y = Math.random() * Math.PI * 2;
+        shell.castShadow = true;
+        scene.add(shell);
+      }
+
+      // Starfish
+      const starfishMat = new THREE.MeshStandardMaterial({ color: 0xd4624a, roughness: 0.85, metalness: 0 });
+      for (let i = 0; i < 4; i++) {
+        const starfish = new THREE.Group();
+        for (let a = 0; a < 5; a++) {
+          const arm = new THREE.Mesh(
+            new THREE.ConeGeometry(0.06, 0.28, 6),
+            starfishMat
+          );
+          const angle = (a / 5) * Math.PI * 2;
+          arm.position.set(Math.cos(angle) * 0.12, 0, Math.sin(angle) * 0.12);
+          arm.rotation.z = -Math.PI / 2;
+          arm.rotation.y = angle;
+          starfish.add(arm);
+        }
+        const center = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), starfishMat);
+        center.scale.y = 0.3;
+        starfish.add(center);
+        starfish.position.set(
+          (Math.random() - 0.5) * 40,
+          0.03,
+          1 + Math.random() * 5
+        );
+        starfish.rotation.y = Math.random() * Math.PI * 2;
+        starfish.castShadow = true;
+        scene.add(starfish);
+      }
+
+      // Driftwood pieces
+      const driftwoodMat = new THREE.MeshStandardMaterial({ color: 0x8a7560, roughness: 1, metalness: 0 });
+      for (let i = 0; i < 6; i++) {
+        const dw = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.04 + Math.random() * 0.06, 0.03 + Math.random() * 0.05, 0.6 + Math.random() * 1.2, 6),
+          driftwoodMat
+        );
+        dw.position.set(
+          (Math.random() - 0.5) * 44,
+          0.04,
+          -2 + Math.random() * 7
+        );
+        dw.rotation.z = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
+        dw.rotation.y = Math.random() * Math.PI;
+        dw.castShadow = true;
+        scene.add(dw);
+      }
+
+      // Small pebbles scattered along shore
+      const pebbleMat = new THREE.MeshStandardMaterial({ color: 0x9a8a78, roughness: 0.9, metalness: 0 });
+      for (let i = 0; i < 30; i++) {
+        const pebble = new THREE.Mesh(
+          new THREE.SphereGeometry(0.03 + Math.random() * 0.06, 6, 6),
+          pebbleMat
+        );
+        pebble.scale.y = 0.3 + Math.random() * 0.3;
+        pebble.position.set(
+          (Math.random() - 0.5) * 55,
+          0.01,
+          -3 + Math.random() * 4
+        );
+        scene.add(pebble);
+      }
+    }
+
+    function initSailboat() {
+      sailboatGroup = new THREE.Group();
+
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x6b3a2a, roughness: 0.8, metalness: 0 });
+      const hull = new THREE.Mesh(
+        new THREE.BoxGeometry(1.8, 0.5, 0.7),
+        hullMat
+      );
+      hull.scale.set(1, 1, 1);
+      sailboatGroup.add(hull);
+
+      // Mast
+      const mastMat = new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.9, metalness: 0 });
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 2.2, 6), mastMat);
+      mast.position.set(0.1, 1.1, 0);
+      sailboatGroup.add(mast);
+
+      // Sail
+      const sailMat = new THREE.MeshStandardMaterial({
+        color: 0xfff8ee,
+        roughness: 0.95,
+        metalness: 0,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.92
+      });
+      const sail = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.6), sailMat);
+      sail.position.set(0.55, 1.0, 0);
+      sail.rotation.y = 0.15;
+      sailboatGroup.add(sail);
+
+      sailboatGroup.position.set(-35, -0.3, -32);
+      sailboatGroup.scale.setScalar(1.4);
+      sailboatGroup.userData = { baseX: -35, baseZ: -32 };
+      scene.add(sailboatGroup);
+    }
+
+    function initFireflies() {
+      fireflyGroup = new THREE.Group();
+      const fireflyCount = 40;
+
+      for (let i = 0; i < fireflyCount; i++) {
+        const firefly = new THREE.Mesh(
+          new THREE.SphereGeometry(0.04, 6, 6),
+          new THREE.MeshBasicMaterial({
+            color: 0xffee88,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false
+          })
+        );
+        firefly.position.set(
+          (Math.random() - 0.5) * 30,
+          0.5 + Math.random() * 3.5,
+          (Math.random() - 0.5) * 20
+        );
+        firefly.userData = {
+          baseX: firefly.position.x,
+          baseY: firefly.position.y,
+          baseZ: firefly.position.z,
+          phaseX: Math.random() * Math.PI * 2,
+          phaseY: Math.random() * Math.PI * 2,
+          phaseZ: Math.random() * Math.PI * 2,
+          phaseBlink: Math.random() * Math.PI * 2,
+          speed: 0.3 + Math.random() * 0.4
+        };
+        fireflyGroup.add(firefly);
+      }
+
+      scene.add(fireflyGroup);
+    }
+
+    function initWaveSpray() {
+      waveSprayGroup = new THREE.Group();
+      const sprayMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.3,
+        depthWrite: false
+      });
+
+      for (let i = 0; i < 24; i++) {
+        const spray = new THREE.Mesh(
+          new THREE.SphereGeometry(0.02 + Math.random() * 0.04, 4, 4),
+          sprayMat.clone()
+        );
+        spray.position.set(
+          (Math.random() - 0.5) * 40,
+          0.05,
+          -3 + Math.random() * 0.8
+        );
+        spray.userData = {
+          baseX: spray.position.x,
+          baseZ: spray.position.z,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.8 + Math.random() * 0.5
+        };
+        waveSprayGroup.add(spray);
+      }
+
+      scene.add(waveSprayGroup);
+
+      // Additional foam lines for more realistic shore
+      secondaryFoam = new THREE.Mesh(
+        new THREE.PlaneGeometry(160, 4, 60, 1),
+        new THREE.MeshBasicMaterial({ color: 0xfff8e8, transparent: true, opacity: 0.12 })
+      );
+      secondaryFoam.rotation.x = -Math.PI / 2;
+      secondaryFoam.position.set(0, -0.08, -4.5);
+      scene.add(secondaryFoam);
+
+      tertiaryFoam = new THREE.Mesh(
+        new THREE.PlaneGeometry(140, 3, 50, 1),
+        new THREE.MeshBasicMaterial({ color: 0xfff4df, transparent: true, opacity: 0.08 })
+      );
+      tertiaryFoam.rotation.x = -Math.PI / 2;
+      tertiaryFoam.position.set(0, -0.06, -6.2);
+      scene.add(tertiaryFoam);
+    }
+
+    function initVegetation() {
+      vegetationGroup = new THREE.Group();
+      const grassMat = new THREE.MeshStandardMaterial({
+        color: 0x4a7a3a,
+        roughness: 1,
+        metalness: 0,
+        side: THREE.DoubleSide
+      });
+      const darkGrassMat = new THREE.MeshStandardMaterial({
+        color: 0x3a6228,
+        roughness: 1,
+        metalness: 0,
+        side: THREE.DoubleSide
+      });
+
+      // Grass tufts scattered around beach edges
+      for (let i = 0; i < 60; i++) {
+        const tuft = new THREE.Group();
+        const bladeCount = 4 + Math.floor(Math.random() * 5);
+
+        for (let b = 0; b < bladeCount; b++) {
+          const blade = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.06 + Math.random() * 0.04, 0.3 + Math.random() * 0.4),
+            Math.random() > 0.4 ? grassMat : darkGrassMat
+          );
+          blade.position.set(
+            (Math.random() - 0.5) * 0.15,
+            0.15 + Math.random() * 0.1,
+            (Math.random() - 0.5) * 0.15
+          );
+          blade.rotation.y = Math.random() * Math.PI;
+          blade.rotation.x = (Math.random() - 0.5) * 0.5;
+          tuft.add(blade);
+        }
+
+        // Place tufts along the back edge of the beach
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 8 + Math.random() * 20;
+        tuft.position.set(
+          Math.cos(angle) * radius * 2.5,
+          0,
+          4 + Math.random() * 12
+        );
+        tuft.userData = { phaseWind: Math.random() * Math.PI * 2 };
+        vegetationGroup.add(tuft);
+      }
+
+      // Small tropical flower clusters
+      const flowerColors = [0xff6b8a, 0xffb347, 0xff69b4, 0xff7043, 0xffee58];
+      for (let i = 0; i < 12; i++) {
+        const flower = new THREE.Mesh(
+          new THREE.SphereGeometry(0.04 + Math.random() * 0.03, 6, 6),
+          new THREE.MeshStandardMaterial({
+            color: flowerColors[Math.floor(Math.random() * flowerColors.length)],
+            roughness: 0.7,
+            metalness: 0,
+            emissive: flowerColors[Math.floor(Math.random() * flowerColors.length)],
+            emissiveIntensity: 0.1
+          })
+        );
+        flower.position.set(
+          (Math.random() - 0.5) * 50,
+          0.15 + Math.random() * 0.15,
+          6 + Math.random() * 10
+        );
+        vegetationGroup.add(flower);
+      }
+
+      scene.add(vegetationGroup);
     }
 
     function animateOcean(t) {
@@ -1573,7 +2003,8 @@
 
     function animateEnvironment(t) {
       palmGroup.children.forEach((palm, i) => {
-        palm.rotation.z = Math.sin(t * 0.55 + i * 0.6) * 0.008;
+        palm.rotation.z = Math.sin(t * 0.55 + i * 0.6) * 0.012;
+        palm.rotation.x = Math.cos(t * 0.4 + i * 0.7) * 0.005;
       });
 
       hutGroup.children.forEach((hut, i) => {
@@ -1588,13 +2019,63 @@
         bird.children[0].rotation.z = 0.18 + Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
         bird.children[1].rotation.z = -0.18 - Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
       });
+
+      // Animate clouds drifting
+      if (cloudGroup) {
+        cloudGroup.children.forEach(cloud => {
+          const d = cloud.userData;
+          cloud.position.x = d.baseX + Math.sin(t * d.speed * 0.05) * d.range;
+          cloud.position.y += Math.sin(t * 0.15 + d.baseX) * 0.001;
+        });
+      }
+
+      // Animate sailboat bobbing and drifting
+      if (sailboatGroup) {
+        const sd = sailboatGroup.userData;
+        sailboatGroup.position.y = -0.3 + Math.sin(t * 0.6) * 0.15;
+        sailboatGroup.position.x = sd.baseX + Math.sin(t * 0.08) * 8;
+        sailboatGroup.position.z = sd.baseZ + Math.cos(t * 0.06) * 3;
+        sailboatGroup.rotation.z = Math.sin(t * 0.7) * 0.06;
+        sailboatGroup.rotation.x = Math.sin(t * 0.5) * 0.03;
+      }
+
+      // Animate wave spray particles
+      if (waveSprayGroup) {
+        waveSprayGroup.children.forEach(spray => {
+          const d = spray.userData;
+          const wavePhase = Math.sin(t * d.speed + d.phase);
+          spray.position.y = 0.05 + Math.max(0, wavePhase) * 0.25;
+          spray.position.z = d.baseZ + Math.sin(t * 0.9 + d.phase) * 0.3;
+          spray.material.opacity = Math.max(0, wavePhase * 0.35);
+        });
+      }
+
+      // Animate secondary/tertiary foam
+      if (secondaryFoam) {
+        secondaryFoam.position.z = -4.5 + Math.sin(t * 0.7 + 1.2) * 0.2;
+        secondaryFoam.material.opacity = 0.08 + Math.sin(t * 1.1) * 0.04;
+      }
+      if (tertiaryFoam) {
+        tertiaryFoam.position.z = -6.2 + Math.sin(t * 0.5 + 2.4) * 0.15;
+        tertiaryFoam.material.opacity = 0.05 + Math.sin(t * 0.8 + 1.0) * 0.03;
+      }
+
+      // Animate vegetation swaying in wind
+      if (vegetationGroup) {
+        vegetationGroup.children.forEach(tuft => {
+          if (tuft.userData.phaseWind !== undefined) {
+            tuft.rotation.z = Math.sin(t * 0.8 + tuft.userData.phaseWind) * 0.08;
+            tuft.rotation.x = Math.cos(t * 0.6 + tuft.userData.phaseWind) * 0.04;
+          }
+        });
+      }
     }
 
     function animateHero(t) {
-      coconut.position.y = 1.03 + Math.sin(t * 0.55) * 0.003;
-      coconut.rotation.x = -0.06 + Math.cos(t * 0.22) * 0.0015;
-      coconut.rotation.y = -0.18;
-      coconut.rotation.z = -0.08 + Math.sin(t * 0.28) * 0.0015;
+      coconut.position.y = 1.03 + Math.sin(t * 0.55) * 0.005 + Math.sin(t * 1.1) * 0.001;
+      coconut.rotation.x = -0.06 + Math.cos(t * 0.22) * 0.003;
+      coconut.rotation.y = -0.18 + Math.sin(t * 0.15) * 0.008;
+      coconut.rotation.z = -0.08 + Math.sin(t * 0.28) * 0.003;
     }
 
     function animateCamera(t) {
@@ -1680,6 +2161,36 @@
       const warmEl = document.querySelector('.warm-bottom');
       if (bloomEl) bloomEl.style.opacity = String(0.1 + daylight * 0.55 + dusk * 0.22);
       if (warmEl) warmEl.style.opacity = String(Math.max(0.08, 0.25 + dusk * 0.75 - night * 0.18));
+
+      // Animate fireflies at night
+      if (fireflyGroup) {
+        fireflyGroup.children.forEach(ff => {
+          const d = ff.userData;
+          ff.position.x = d.baseX + Math.sin(t * d.speed + d.phaseX) * 1.5;
+          ff.position.y = d.baseY + Math.cos(t * d.speed * 0.7 + d.phaseY) * 0.8;
+          ff.position.z = d.baseZ + Math.sin(t * d.speed * 0.5 + d.phaseZ) * 1.2;
+          const blink = (Math.sin(t * 2.5 + d.phaseBlink) + 1) * 0.5;
+          ff.material.opacity = starVisibility * blink * 0.85;
+          ff.scale.setScalar(0.6 + blink * 0.5);
+        });
+      }
+
+      // Adjust cloud brightness for day/night
+      if (cloudGroup) {
+        cloudGroup.children.forEach(cloud => {
+          cloud.children.forEach(puff => {
+            puff.material.opacity = 0.25 + daylight * 0.45 - night * 0.15;
+            puff.material.color.copy(lerpColorHex('#ffffff', '#8895aa', night * 0.6));
+          });
+        });
+      }
+
+      // Sailboat sail glow at sunset
+      if (sailboatGroup && sailboatGroup.children[2]) {
+        sailboatGroup.children[2].material.color.copy(
+          lerpColorHex('#fff8ee', '#ffd4a0', dusk * 0.6)
+        );
+      }
     }
 
     function bindEvents() {
