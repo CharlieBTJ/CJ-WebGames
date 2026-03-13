@@ -14,42 +14,44 @@
   <title>Coconut Simulator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
     :root {
-      --panel: linear-gradient(180deg, rgba(36,48,58,0.92), rgba(22,28,34,0.96));
-      --panel-2: linear-gradient(180deg, rgba(48,66,80,0.96), rgba(28,38,46,0.98));
-      --text: rgba(255,255,255,0.96);
-      --muted: rgba(190,205,214,0.78);
-      --accent: rgba(190,220,235,0.84);
-      --border: rgba(255,255,255,0.12);
-      --good: #8ff0b5;
-      --warn: #ffd36e;
-      --bad: #ff9788;
+      --hud-bg: rgba(40, 40, 40, 0.34);
+      --hud-border: rgba(255, 255, 255, 0.12);
+      --hud-text: rgba(255,255,255,0.96);
     }
 
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; }
+
     body {
       margin: 0;
       overflow: hidden;
       background: #95bdd8;
-      color: var(--text);
+      color: var(--hud-text);
       font-family: Inter, sans-serif;
     }
 
-    #canvas-container, canvas {
+    #canvas-container,
+    canvas {
       position: fixed;
       inset: 0;
       display: block;
     }
 
-    .overlay, .vignette, .bloom, .grain, .warm-bottom {
+    .overlay,
+    .vignette,
+    .bloom,
+    .grain {
       position: fixed;
       inset: 0;
       pointer-events: none;
     }
+
+    .overlay { z-index: 2; }
 
     .vignette {
       z-index: 3;
@@ -69,7 +71,7 @@
 
     .grain {
       z-index: 5;
-      opacity: 0.04;
+      opacity: 0.045;
       background-image:
         linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
@@ -78,7 +80,10 @@
     }
 
     .warm-bottom {
+      position: fixed;
+      inset: 0;
       z-index: 4;
+      pointer-events: none;
       background: linear-gradient(to top, rgba(180,120,72,0.16), transparent 32%);
     }
 
@@ -86,80 +91,74 @@
       position: fixed;
       inset: 0;
       z-index: 10;
-      display: grid;
-      grid-template-columns: 320px 1fr 300px;
-      grid-template-rows: auto 1fr auto;
-      gap: 12px;
-      padding: 12px;
       pointer-events: none;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(0,0,0,0.26), 0 0 0 1px rgba(0,0,0,0.14);
-      backdrop-filter: blur(12px) saturate(125%);
-      -webkit-backdrop-filter: blur(12px) saturate(125%);
-      border-radius: 16px;
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px;
     }
 
     .interactive { pointer-events: auto; }
 
-    .topbar {
-      grid-column: 1 / 3;
+    .bar {
+      background: linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      background-color: var(--hud-bg);
+      border: 1px solid var(--hud-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 18px rgba(0,0,0,0.18);
+    }
+
+    .top-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: start;
+      gap: 12px;
+    }
+
+    .title-bar {
+      min-height: 58px;
+      border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      min-height: 58px;
       padding: 12px 16px;
+      color: rgba(255,255,255,0.97);
+      background: linear-gradient(180deg, rgba(36,48,58,0.90), rgba(22,28,34,0.94));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 12px 26px rgba(0,0,0,0.24),
+        0 0 0 1px rgba(0,0,0,0.16);
+      backdrop-filter: blur(12px) saturate(125%);
+      -webkit-backdrop-filter: blur(12px) saturate(125%);
+      overflow: hidden;
       position: relative;
     }
 
-    .topbar::before, .side-panel::before, .right-panel::before {
-      content: "";
-      position: absolute;
-      left: 0; right: 0; top: 0;
-      height: 1px;
-      background: rgba(255,255,255,0.12);
+    .title-left {
+      justify-self: start;
+      min-width: min(34vw, 390px);
+      max-width: 500px;
+      gap: 12px;
     }
 
-    .brand-small {
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(190,220,235,0.76);
-      margin-bottom: 4px;
-    }
-
-    .brand-title {
-      font-size: clamp(18px, 2.2vw, 30px);
-      font-weight: 800;
-      line-height: 0.92;
-      letter-spacing: -0.04em;
-      text-shadow: 0 2px 18px rgba(0,0,0,0.18);
-    }
-
-    .brand-sub {
-      margin-top: 5px;
-      font-size: 10.5px;
-      color: rgba(210,220,228,0.70);
-      letter-spacing: 0.02em;
-      max-width: 320px;
-    }
-
-    .points-card {
-      min-width: 188px;
+    .points-box {
+      min-width: 148px;
       border-radius: 14px;
-      padding: 10px 12px;
-      background: var(--panel-2);
+      padding: 9px 12px;
+      text-align: left;
+      background: linear-gradient(180deg, rgba(48,66,80,0.96), rgba(28,38,46,0.98));
       border: 1px solid rgba(210,240,255,0.16);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 18px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 10px 18px rgba(0,0,0,0.18),
+        0 0 0 1px rgba(0,0,0,0.14);
+      position: relative;
+      overflow: hidden;
     }
 
-    .label {
+    .points-label {
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.18em;
@@ -168,118 +167,97 @@
       margin-bottom: 6px;
     }
 
-    .points-row {
-      display: flex;
-      align-items: end;
-      gap: 8px;
-      line-height: 1;
-    }
-
-    .points-value {
-      font-size: clamp(24px, 2.3vw, 34px);
-      font-weight: 800;
-      letter-spacing: -0.05em;
-      text-shadow: 0 1px 12px rgba(0,0,0,0.16);
-    }
-
-    .side-panel {
-      grid-column: 1;
-      grid-row: 2;
+    .middle-zone {
       position: relative;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-height: 0;
+      flex: 1;
     }
 
-    .right-panel {
-      grid-column: 3;
-      grid-row: 1 / span 2;
-      position: relative;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-height: 0;
+    .stats-panel {
+      position: absolute;
+      top: 8px;
+      right: 0;
+      width: 196px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: linear-gradient(180deg, rgba(36,48,58,0.90), rgba(22,28,34,0.94));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 18px 34px rgba(0,0,0,0.28),
+        0 0 0 1px rgba(0,0,0,0.14);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
-    .section-title {
+    .stats-title {
       font-size: 10px;
       font-weight: 800;
-      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 6px;
+      margin-bottom: 10px;
+      color: rgba(190,220,235,0.84);
+      letter-spacing: 0.18em;
     }
 
-    .stats-list, .quest-list, .upgrade-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .stat-row, .quest-item, .upgrade-item {
-      display: grid;
-      grid-template-columns: minmax(0,1fr) auto;
-      gap: 10px;
-      align-items: start;
+    .stats-line {
       font-size: 11px;
       line-height: 1.45;
+      color: rgba(255,255,255,0.94);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(84px, auto);
+      gap: 10px;
+      align-items: start;
+      white-space: normal;
     }
 
-    .muted { color: var(--muted); }
-    .good { color: var(--good); }
-    .warn { color: var(--warn); }
-    .bad { color: var(--bad); }
-
-    .bar-track {
-      height: 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.06);
-      overflow: hidden;
-      position: relative;
+    .stats-line span:first-child {
+      color: rgba(190,205,214,0.82);
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
-    .bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, rgba(115,205,255,0.7), rgba(255,215,122,0.85));
-      transition: width 0.15s linear;
-    }
-
-    .timing-marker {
+    .thought {
       position: absolute;
-      top: -1px;
-      width: 14%;
-      height: calc(100% + 2px);
-      left: 43%;
-      border-left: 1px solid rgba(255,255,255,0.2);
-      border-right: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.08);
-      pointer-events: none;
+      left: 50%;
+      bottom: 102px;
+      transform: translateX(-50%) translateY(12px);
+      opacity: 0;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      max-width: min(52vw, 390px);
+      text-align: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(35,35,35,0.18);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      font-style: italic;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.22);
     }
 
-    .ponder-wrap {
-      grid-column: 2;
-      grid-row: 3;
-      align-self: end;
-      justify-self: center;
-      width: min(560px, 100%);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
+    .thought.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
-    .ponder-meta {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 11px;
-      color: var(--muted);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 16px;
+    }
+
+    .bottom-left {
+      justify-self: start;
+      min-width: 220px;
+      max-width: 295px;
+      border-radius: 8px;
+      padding: 7px 9px;
+      color: rgba(255,255,255,0.74);
+      font-size: 10.5px;
     }
 
     .ponder-btn {
@@ -296,7 +274,11 @@
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 18px 38px rgba(0,0,0,0.34), 0 0 0 1px rgba(0,0,0,0.18), 0 10px 26px rgba(0,0,0,0.22);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        0 18px 38px rgba(0,0,0,0.34),
+        0 0 0 1px rgba(0,0,0,0.18),
+        0 10px 26px rgba(0,0,0,0.22);
       backdrop-filter: blur(10px) saturate(120%);
       -webkit-backdrop-filter: blur(10px) saturate(120%);
       transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, filter 0.16s ease;
@@ -307,88 +289,59 @@
     .ponder-btn:hover {
       transform: translateY(-3px) scale(1.015);
       border-color: rgba(210,240,255,0.30);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 22px 44px rgba(0,0,0,0.38), 0 0 0 1px rgba(130,200,240,0.18), 0 0 30px rgba(90,170,220,0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        0 22px 44px rgba(0,0,0,0.38),
+        0 0 0 1px rgba(130,200,240,0.18),
+        0 0 30px rgba(90,170,220,0.18);
       filter: brightness(1.05);
     }
 
     .ponder-btn:active {
       transform: translateY(1px) scale(0.995);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        0 10px 18px rgba(0,0,0,0.24),
+        0 0 18px rgba(90,170,220,0.12);
     }
 
-    .upgrade-button, .prestige-button, .event-button {
-      pointer-events: auto;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: linear-gradient(180deg, rgba(56,76,92,0.92), rgba(32,42,50,0.96));
-      color: white;
-      border-radius: 12px;
-      padding: 9px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+    .corner-mark {
+      justify-self: end;
+      width: 30px;
+      height: 30px;
+      position: relative;
+      opacity: 0.9;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
     }
 
-    .upgrade-button:hover, .prestige-button:hover, .event-button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
+    .corner-mark::before,
+    .corner-mark::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      transform: rotate(45deg);
     }
 
-    .upgrade-button:disabled, .prestige-button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-      filter: none;
+    .corner-mark::before {
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.96), rgba(255,255,255,0.42));
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
     }
 
-    .event-card {
-      position: fixed;
-      left: 50%;
-      top: 84px;
-      transform: translateX(-50%);
-      z-index: 20;
-      width: min(420px, calc(100vw - 24px));
-      padding: 12px;
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(39,48,58,0.96), rgba(19,24,30,0.98));
-      border: 1px solid rgba(255,255,255,0.14);
-      box-shadow: 0 18px 38px rgba(0,0,0,0.32);
-      pointer-events: auto;
-      display: none;
-    }
-
-    .event-card.show { display: block; }
-
-    .thought {
-      position: fixed;
-      left: 50%;
-      bottom: 116px;
-      transform: translateX(-50%) translateY(12px);
-      opacity: 0;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      max-width: min(52vw, 390px);
-      text-align: center;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: rgba(35,35,35,0.18);
-      backdrop-filter: blur(5px);
-      font-size: 13px;
-      color: rgba(255,255,255,0.8);
-      font-style: italic;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.22);
-      pointer-events: none;
-      z-index: 12;
-    }
-
-    .thought.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+    .corner-mark::after {
+      width: 8px;
+      height: 8px;
+      background: rgba(255,255,255,0.95);
+      clip-path: circle(50% at 50% 50%);
     }
 
     .achievement {
       position: fixed;
       right: 14px;
       bottom: 56px;
-      z-index: 22;
+      z-index: 12;
       width: min(300px, calc(100vw - 28px));
       padding: 10px 12px;
       border-radius: 8px;
@@ -397,10 +350,18 @@
       transform: translateX(120%);
       transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
       box-shadow: 0 10px 20px rgba(0,0,0,0.22);
-      pointer-events: none;
     }
 
     .achievement.show { transform: translateX(0); }
+
+    .achievement-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(221,245,255,0.95);
+      margin-bottom: 4px;
+    }
 
     @keyframes grainShift {
       0% { transform: translate(0,0); }
@@ -417,126 +378,192 @@
       100% { opacity: 0; }
     }
 
-    @media (max-width: 980px) {
+    @media (max-width: 860px) {
       .ui {
-        grid-template-columns: 280px 1fr;
-        grid-template-rows: auto auto 1fr auto;
+        padding: 10px;
       }
-      .topbar { grid-column: 1 / span 2; }
-      .right-panel { grid-column: 2; grid-row: 2 / span 2; }
-      .side-panel { grid-column: 1; grid-row: 2 / span 2; }
-      .ponder-wrap { grid-column: 1 / span 2; }
+
+      .top-row,
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+
+      .title-left,
+      .bottom-left,
+      .corner-mark {
+        justify-self: stretch;
+        min-width: 0;
+      }
+
+      .title-bar {
+        min-height: 74px;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 12px 14px;
+        gap: 10px;
+      }
+
+      .points-box {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .stats-panel {
+        top: 0;
+        right: 0;
+        width: min(180px, calc(100vw - 20px));
+        padding: 10px 12px;
+      }
+
+      .thought {
+        bottom: 78px;
+        max-width: calc(100vw - 20px);
+        font-size: 12px;
+        padding: 7px 10px;
+      }
+
+      .bottom-row {
+        gap: 10px;
+      }
+
+      .bottom-left {
+        max-width: none;
+        width: 100%;
+        font-size: 10px;
+      }
+
+      .ponder-btn {
+        width: 100%;
+        min-width: 0;
+        height: 56px;
+        border-radius: 18px;
+      }
+
+      .corner-mark {
+        width: 24px;
+        height: 24px;
+        justify-self: end;
+      }
     }
 
     @media (max-width: 640px) {
       .ui {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto 1fr auto;
         padding: 8px;
-        gap: 8px;
       }
-      .topbar, .side-panel, .right-panel, .ponder-wrap { grid-column: 1; }
-      .topbar {
-        grid-row: 1;
+
+      .title-bar {
         min-height: 64px;
         padding: 10px 12px;
         border-radius: 16px;
-        align-items: flex-start;
+      }
+
+      .title-left {
+        max-width: none;
+      }
+
+      .stats-panel {
+        position: static;
+        width: 100%;
+        margin-top: 8px;
+        border-radius: 12px;
+      }
+
+      .middle-zone {
+        display: flex;
         flex-direction: column;
-        gap: 10px;
+        justify-content: flex-start;
+        gap: 8px;
       }
-      .points-card { width: 100%; min-width: 0; }
-      .side-panel, .right-panel {
-        padding: 10px;
-        border-radius: 14px;
+
+      .stats-line {
+        grid-template-columns: minmax(0, 1fr) minmax(96px, auto);
+        font-size: 10px;
       }
-      .side-panel { grid-row: 2; }
-      .right-panel { grid-row: 3; }
-      .ponder-wrap { grid-row: 5; width: 100%; }
-      .ponder-btn { width: 100%; min-width: 0; height: 56px; }
+
       .thought {
-        bottom: 94px;
-        max-width: calc(100vw - 20px);
-        font-size: 12px;
+        position: static;
+        transform: none;
+        opacity: 1;
+        max-width: 100%;
+        margin-top: 0;
       }
-      .event-card { top: 72px; }
+
+      .thought.show {
+        transform: none;
+      }
+
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bottom-left {
+        order: 2;
+      }
+
+      .ponder-btn {
+        order: 1;
+        height: 54px;
+      }
+
+      .corner-mark {
+        order: 3;
+      }
     }
   </style>
 </head>
 <body>
   <div id="canvas-container"></div>
-  <div class="vignette"></div>
-  <div class="bloom"></div>
+  <div class="overlay vignette"></div>
+  <div class="overlay bloom"></div>
   <div class="warm-bottom"></div>
-  <div class="grain"></div>
+  <div class="overlay grain"></div>
 
   <div class="ui">
-    <div class="topbar panel interactive">
-      <div>
-        <div class="brand-small">Idle Observation Interface</div>
-        <div class="brand-title">Coconut <span style="color:rgba(220,240,250,0.96);">Simulator</span></div>
-        <div class="brand-sub">Premium stillness. Sunset telemetry. Elite coconut performance.</div>
-      </div>
-      <div class="points-card">
-        <div class="label">Transcendence Points</div>
-        <div class="points-row">
-          <div id="points-display" class="points-value">0</div>
-          <div style="font-size:10px;color:rgba(190,220,235,0.72);padding-bottom:3px;letter-spacing:0.1em;text-transform:uppercase;">Live</div>
+    <div class="top-row">
+      <div class="title-bar title-left interactive">
+        <div style="position:absolute;left:0;right:0;top:0;height:1px;background:rgba(255,255,255,0.12);"></div>
+
+        <div>
+          <div style="font-size:9px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;color:rgba(190,220,235,0.76);margin-bottom:4px;">
+            Idle Observation Interface
+          </div>
+          <div style="font-size:clamp(18px,2.2vw,30px);font-weight:800;line-height:0.92;letter-spacing:-0.04em;text-transform:none;color:#ffffff;text-shadow:0 2px 18px rgba(0,0,0,0.18);">
+            Coconut <span style="color:rgba(220,240,250,0.96);">Simulator</span>
+          </div>
+          <div style="margin-top:5px;font-size:10.5px;color:rgba(210,220,228,0.70);letter-spacing:0.02em;max-width:270px;">
+            Premium stillness. Sunset telemetry. Elite coconut performance.
+          </div>
+        </div>
+
+        <div class="points-box interactive">
+          <div class="points-label">Transcendence Points</div>
+          <div style="display:flex;align-items:end;gap:8px;line-height:1;">
+            <div id="points-display" style="font-size:clamp(24px,2.3vw,32px);font-weight:800;letter-spacing:-0.05em;color:#ffffff;text-shadow:0 1px 12px rgba(0,0,0,0.16);">0</div>
+            <div style="font-size:10px;color:rgba(190,220,235,0.72);padding-bottom:3px;letter-spacing:0.1em;text-transform:uppercase;">Live</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="side-panel panel interactive">
-      <div>
-        <div class="section-title">Upgrades</div>
-        <div id="upgrade-list" class="upgrade-list"></div>
+    <div class="middle-zone">
+      <div class="stats-panel interactive">
+        <div style="position:absolute;left:0;right:0;top:0;height:1px;background:rgba(255,255,255,0.12);"></div>
+        <div class="stats-title">Stats</div>
+        <div class="stats-line"><span>Observation Time</span><span id="timer-display" style="min-width:84px;white-space:normal;overflow-wrap:anywhere;text-align:right;display:block;">0 seconds</span></div>
+        <div class="stats-line"><span>Game Day</span><span id="game-day-display" style="min-width:84px;text-align:right;display:block;">Day 1</span></div>
+        <div class="stats-line"><span>Game Time</span><span id="game-time-display" style="min-width:84px;text-align:right;display:block;">06:00</span></div>
+        <div class="stats-line"><span>Temperature</span><span id="temp-display" style="min-width:84px;text-align:right;display:block;">28°C</span></div>
       </div>
-      <div>
-        <div class="section-title">Prestige</div>
-        <div class="stat-row"><span class="muted">Coconut Essence</span><span id="essence-display">0</span></div>
-        <div class="stat-row"><span class="muted">Reset Reward</span><span id="prestige-reward-display">0</span></div>
-        <button id="prestige-button" class="prestige-button" disabled>Transcend Run</button>
-      </div>
-      <div>
-        <div class="section-title">Achievements</div>
-        <div id="achievement-count" class="muted">0 unlocked</div>
-      </div>
+
+      <div id="thought" class="thought">The horizon remains unavailable.</div>
     </div>
 
-    <div class="right-panel panel interactive">
-      <div>
-        <div class="section-title">Stats</div>
-        <div class="stats-list">
-          <div class="stat-row"><span class="muted">Observation Time</span><span id="timer-display">0 seconds</span></div>
-          <div class="stat-row"><span class="muted">Game Day</span><span id="game-day-display">Day 1</span></div>
-          <div class="stat-row"><span class="muted">Game Time</span><span id="game-time-display">06:00</span></div>
-          <div class="stat-row"><span class="muted">Temperature</span><span id="temp-display">28°C</span></div>
-          <div class="stat-row"><span class="muted">Stillness / sec</span><span id="passive-display">1.0</span></div>
-          <div class="stat-row"><span class="muted">Serenity Multiplier</span><span id="multiplier-display">x1.00</span></div>
-          <div class="stat-row"><span class="muted">Ponder Combo</span><span id="combo-display">0</span></div>
-          <div class="stat-row"><span class="muted">Rare Event Rate</span><span id="event-rate-display">1.00x</span></div>
-        </div>
+    <div class="bottom-row">
+      <div class="bar bottom-left interactive">
+        Beach state stable. Ambient stillness within tolerance.
       </div>
-      <div>
-        <div class="section-title">Active Quests</div>
-        <div id="quest-list" class="quest-list"></div>
-      </div>
-      <div>
-        <div class="section-title">Current Bonus</div>
-        <div id="cycle-bonus" class="muted">Daylight efficiency active.</div>
-      </div>
-    </div>
 
-    <div class="ponder-wrap">
-      <div class="ponder-meta">
-        <span id="ponder-feedback">Line up the meter for a Perfect Ponder.</span>
-        <span id="event-hint">Idle stillness earns points.</span>
-      </div>
-      <div class="bar-track interactive">
-        <div id="ponder-fill" class="bar-fill"></div>
-        <div class="timing-marker"></div>
-      </div>
-      <button id="ponder-button" class="ponder-btn interactive">
+      <button id="ponder-button" class="ponder-btn">
         <span style="position:absolute;inset:1px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));z-index:0;"></span>
         <span style="position:absolute;left:0;right:0;top:0;height:1px;background:rgba(255,255,255,0.16);z-index:1;"></span>
         <span style="position:absolute;inset:0;background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.10) 28%, transparent 52%);transform:translateX(-120%);animation:ponderSweep 4.6s ease-in-out infinite;z-index:0;"></span>
@@ -548,27 +575,18 @@
           </span>
         </span>
       </button>
-    </div>
-  </div>
 
-  <div id="thought" class="thought">The horizon remains unavailable.</div>
-
-  <div id="event-card" class="event-card">
-    <div class="section-title" id="event-title">Rare Event</div>
-    <div id="event-description" style="font-size:13px;line-height:1.45;margin-bottom:10px;color:rgba(255,255,255,0.88);"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-      <div id="event-timer" class="muted">8.0s</div>
-      <button id="event-button" class="event-button">Resolve Event</button>
+      <div class="corner-mark"></div>
     </div>
   </div>
 
   <div id="achievement" class="achievement">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="font-size:24px;">🥥</div>
+    <div class="flex items-center gap-3">
+      <div class="text-2xl">🥥</div>
       <div>
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:rgba(221,245,255,0.95);margin-bottom:4px;">Achievement Unlocked</div>
-        <div id="achievement-name" style="font-size:18px;font-weight:700;">First Ponder</div>
-        <div id="achievement-desc" style="font-size:13px;color:rgba(255,255,255,0.7);">You committed to the bit.</div>
+        <div class="achievement-title">Achievement Unlocked</div>
+        <div id="achievement-name" class="text-lg font-semibold">First Ponder</div>
+        <div id="achievement-desc" class="text-sm text-white/70">You committed to the bit.</div>
       </div>
     </div>
   </div>
@@ -578,114 +596,35 @@
       timer: document.getElementById('timer-display'),
       points: document.getElementById('points-display'),
       temp: document.getElementById('temp-display'),
-      gameDay: document.getElementById('game-day-display'),
-      gameTime: document.getElementById('game-time-display'),
-      passive: document.getElementById('passive-display'),
-      multiplier: document.getElementById('multiplier-display'),
-      combo: document.getElementById('combo-display'),
-      eventRate: document.getElementById('event-rate-display'),
-      cycleBonus: document.getElementById('cycle-bonus'),
       thought: document.getElementById('thought'),
       ponder: document.getElementById('ponder-button'),
-      ponderFill: document.getElementById('ponder-fill'),
-      ponderFeedback: document.getElementById('ponder-feedback'),
-      eventHint: document.getElementById('event-hint'),
-      upgradeList: document.getElementById('upgrade-list'),
-      questList: document.getElementById('quest-list'),
-      essence: document.getElementById('essence-display'),
-      prestigeReward: document.getElementById('prestige-reward-display'),
-      prestigeButton: document.getElementById('prestige-button'),
-      eventCard: document.getElementById('event-card'),
-      eventTitle: document.getElementById('event-title'),
-      eventDescription: document.getElementById('event-description'),
-      eventTimer: document.getElementById('event-timer'),
-      eventButton: document.getElementById('event-button'),
       achievement: document.getElementById('achievement'),
       achievementName: document.getElementById('achievement-name'),
       achievementDesc: document.getElementById('achievement-desc'),
-      achievementCount: document.getElementById('achievement-count')
+      gameDay: document.getElementById('game-day-display'),
+      gameTime: document.getElementById('game-time-display')
     };
-
-    const baseUpgradeDefs = [
-      { id: 'husk', name: 'Thicker Husk', desc: '+0.9 stillness / sec', baseCost: 25, costScale: 1.55, apply: (lvl, g) => g.basePassive += lvl * 0.9 },
-      { id: 'weight', name: 'Philosophical Weight', desc: '+8% ponder reward', baseCost: 60, costScale: 1.65, apply: (lvl, g) => g.ponderPower += lvl * 0.08 },
-      { id: 'sun', name: 'Sun-Baked Wisdom', desc: '+12% day income', baseCost: 100, costScale: 1.7, apply: (lvl, g) => g.dayBonus += lvl * 0.12 },
-      { id: 'moon', name: 'Moonlit Insight', desc: '+14% night income', baseCost: 140, costScale: 1.72, apply: (lvl, g) => g.nightBonus += lvl * 0.14 },
-      { id: 'aura', name: 'Beach Aura', desc: '+18% event rate', baseCost: 180, costScale: 1.8, apply: (lvl, g) => g.eventRate += lvl * 0.18 },
-      { id: 'charisma', name: 'Coconut Charisma', desc: '+1 quest payout tier', baseCost: 240, costScale: 1.85, apply: (lvl, g) => g.questPower += lvl * 0.25 }
-    ];
-
-    const questTemplates = [
-      { id: 'time_45', name: 'Observe for 45 seconds', type: 'time', target: 45, reward: 70 },
-      { id: 'time_120', name: 'Observe for 2 minutes', type: 'time', target: 120, reward: 140 },
-      { id: 'perfect_3', name: 'Hit 3 Perfect Ponders', type: 'perfect', target: 3, reward: 90 },
-      { id: 'perfect_8', name: 'Hit 8 Perfect Ponders', type: 'perfect', target: 8, reward: 220 },
-      { id: 'combo_5', name: 'Reach combo 5', type: 'combo', target: 5, reward: 85 },
-      { id: 'combo_12', name: 'Reach combo 12', type: 'combo', target: 12, reward: 190 },
-      { id: 'event_2', name: 'Resolve 2 rare events', type: 'events', target: 2, reward: 120 },
-      { id: 'event_5', name: 'Resolve 5 rare events', type: 'events', target: 5, reward: 260 },
-      { id: 'spend_300', name: 'Spend 300 points on upgrades', type: 'spend', target: 300, reward: 120 },
-      { id: 'earn_500', name: 'Earn 500 points in one run', type: 'earn', target: 500, reward: 130 },
-      { id: 'day_3', name: 'Survive until Day 3', type: 'day', target: 3, reward: 180 },
-      { id: 'night', name: 'Stay until full night', type: 'night', target: 1, reward: 150 }
-    ];
-
-    const eventTemplates = [
-      { id: 'gull', title: 'Capitalist Seagull', desc: 'A seagull is hovering over your profits. Click it before it steals your points.', reward: 60, penalty: -40, duration: 8 },
-      { id: 'golden', title: 'Golden Coconut', desc: 'A golden coconut rolls through the surf. Claim it for a jackpot.', reward: 180, penalty: 0, duration: 7 },
-      { id: 'storm', title: 'Passing Storm', desc: 'A sudden storm front boosts dramatic stillness. Ground yourself in it.', reward: 90, penalty: -20, duration: 9 },
-      { id: 'ufo', title: 'Coconut Uplift Anomaly', desc: 'A distant UFO is scanning premium produce. Acknowledge the beam.', reward: 140, penalty: 0, duration: 7 },
-      { id: 'crab', title: 'Hermit Crab Merchant', desc: 'A crab offers shell wisdom. Accept to gain temporary multiplier.', reward: 75, penalty: 0, duration: 10, buff: true }
-    ];
 
     const state = {
       startTime: performance.now(),
-      totalEarned: 0,
       points: 0,
-      essence: 0,
       shownThought: false,
       activeThoughtIndex: -1,
       unlocked: new Set(),
-      achievements: 0,
-      combo: 0,
-      bestCombo: 0,
-      perfects: 0,
-      eventsResolved: 0,
-      spentOnUpgrades: 0,
-      questPower: 1,
-      ponderPower: 1,
-      eventRate: 1,
-      dayBonus: 1,
-      nightBonus: 1,
-      basePassive: 1,
-      activeQuests: [],
-      activeEvent: null,
-      eventCooldown: 10,
-      lastFrameTime: performance.now(),
-      ponderMeter: 0,
-      ponderDir: 1,
-      dayContext: 'day',
-      dayNumber: 1,
-      crabBuffTimer: 0,
       thoughts: [
         'The horizon remains unavailable.',
         'A premium coconut never rushes.',
-        'Stillness has excellent lighting.',
         'Somewhere, a seagull disapproves.',
+        'Stillness has excellent lighting.',
         'This beach understands market positioning.',
         'The sea is doing a lot of work for your score.',
         'An elite coconut commits to stillness.',
         'The island respects your inactivity.',
         'Every second here is operational excellence.',
         'The surf continues its unpaid performance.',
-        'You are watching premium sand in real time.',
-        'Prestige is just peeling your old shell off.',
-        'Sunset is when the margins get philosophical.'
-      ],
-      upgrades: {}
+        'You are watching premium sand in real time.'
+      ]
     };
-
-    baseUpgradeDefs.forEach(def => { state.upgrades[def.id] = 0; });
 
     let scene, camera, renderer, clock;
     let coconut, ocean, palmGroup, hutGroup, shoreFoam, sunMesh, birdGroup;
@@ -696,25 +635,21 @@
       return window.innerWidth <= 640;
     }
 
-    function clamp(v, a, b) {
-      return Math.max(a, Math.min(b, v));
-    }
-
-    function formatNumber(value) {
-      if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
-      if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
-      if (value >= 1e3) return (value / 1e3).toFixed(2) + 'K';
-      return value.toFixed(value < 10 ? 1 : 0);
-    }
-
     function formatElapsedLabel(ms) {
       const totalSeconds = Math.max(0, Math.floor(ms / 1000));
       const seconds = totalSeconds % 60;
       const totalMinutes = Math.floor(totalSeconds / 60);
       const minutes = totalMinutes % 60;
       const hours = Math.floor(totalMinutes / 60);
-      if (hours > 0) return `${hours} hour${hours === 1 ? '' : 's'} ${minutes} minute${minutes === 1 ? '' : 's'}`;
-      if (totalMinutes > 0) return `${totalMinutes} minute${totalMinutes === 1 ? '' : 's'} ${seconds} second${seconds === 1 ? '' : 's'}`;
+
+      if (hours > 0) {
+        return `${hours} hour${hours === 1 ? '' : 's'} ${minutes} minute${minutes === 1 ? '' : 's'}`;
+      }
+
+      if (totalMinutes > 0) {
+        return `${totalMinutes} minute${totalMinutes === 1 ? '' : 's'} ${seconds} second${seconds === 1 ? '' : 's'}`;
+      }
+
       return `${seconds} second${seconds === 1 ? '' : 's'}`;
     }
 
@@ -732,10 +667,6 @@
       const minutes = totalGameMinutes % 60;
       const dayNumber = Math.floor(rawPhase / (Math.PI * 2)) + 1;
       return { hours24, minutes, dayNumber, phase };
-    }
-
-    function randomFrom(array) {
-      return array[Math.floor(Math.random() * array.length)];
     }
 
     function createSkyTexture() {
@@ -760,15 +691,18 @@
       const phase = (Math.sin(dayPhase) + 1) * 0.5;
       const sunsetBand = Math.max(0, 1 - Math.abs(phase - 0.22) / 0.18);
       const nightBand = Math.max(0, 1 - phase * 1.6);
+
       const topDay = lerpColorHex('#7da0b5', '#2c3950', nightBand * 0.9);
       const midDay = lerpColorHex('#b7b8b0', '#6c5a6d', nightBand * 0.7);
       const lowDay = lerpColorHex('#e4bb81', '#c06a4a', sunsetBand * 0.85 + nightBand * 0.15);
       const horizonDay = lerpColorHex('#d79b5e', '#1f2434', nightBand * 0.95);
+
       const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
       g.addColorStop(0, `#${topDay.getHexString()}`);
       g.addColorStop(0.34, `#${midDay.getHexString()}`);
       g.addColorStop(0.68, `#${lowDay.getHexString()}`);
       g.addColorStop(1, `#${horizonDay.getHexString()}`);
+
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       texture.needsUpdate = true;
@@ -787,322 +721,43 @@
     function showThought(text) {
       el.thought.textContent = text || nextThought();
       el.thought.classList.add('show');
+
       clearTimeout(showThought._hideTimer);
       clearTimeout(showThought._cooldownTimer);
+
       showThought._hideTimer = setTimeout(() => el.thought.classList.remove('show'), 3200);
       showThought._cooldownTimer = setTimeout(() => { state.shownThought = false; }, 5000);
+
       state.shownThought = true;
     }
 
     function unlockAchievement(id, name, desc) {
       if (state.unlocked.has(id)) return;
       state.unlocked.add(id);
-      state.achievements += 1;
       el.achievementName.textContent = name;
       el.achievementDesc.textContent = desc;
       el.achievement.classList.add('show');
-      el.achievementCount.textContent = `${state.achievements} unlocked`;
       setTimeout(() => el.achievement.classList.remove('show'), 3500);
     }
 
-    function getUpgradeCost(def) {
-      const level = state.upgrades[def.id];
-      return Math.floor(def.baseCost * Math.pow(def.costScale, level));
-    }
+    function updateHUD(ms) {
+      const wholeSeconds = Math.floor(ms / 1000);
+      state.points = wholeSeconds;
 
-    function recomputeStats() {
-      const g = {
-        basePassive: 1 + state.essence * 0.4,
-        ponderPower: 1 + state.essence * 0.05,
-        dayBonus: 1,
-        nightBonus: 1,
-        eventRate: 1,
-        questPower: 1
-      };
-      baseUpgradeDefs.forEach(def => def.apply(state.upgrades[def.id], g));
-      state.basePassive = g.basePassive;
-      state.ponderPower = g.ponderPower;
-      state.dayBonus = g.dayBonus;
-      state.nightBonus = g.nightBonus;
-      state.eventRate = g.eventRate;
-      state.questPower = g.questPower;
-    }
+      el.timer.textContent = formatElapsedLabel(ms);
+      el.points.textContent = state.points.toLocaleString();
 
-    function getCycleMultiplier() {
-      if (state.dayContext === 'sunset') return 1.5 * state.dayBonus;
-      if (state.dayContext === 'night') return 1.0 * state.nightBonus;
-      return 1.15 * state.dayBonus;
-    }
-
-    function getPassiveRate() {
-      let value = state.basePassive * getCycleMultiplier();
-      value *= 1 + state.combo * 0.03;
-      if (state.crabBuffTimer > 0) value *= 1.5;
-      return value;
-    }
-
-function addPoints(amount, source = 'generic') {
-  state.points += amount;
-  state.totalEarned += Math.max(0, amount);
-
-  progressQuest('earn', state.totalEarned);
-
-  if (state.points >= 500) {
-    unlockAchievement('500', 'Beach Capital', 'You crossed 500 points in one run.');
-  }
-
-  if (source === 'perfect') {
-    progressQuest('perfect', state.perfects);
-  }
-}
-
-function spendPoints(amount) {
-  if (state.points < amount) return false;
-
-  state.points -= amount;
-  state.spentOnUpgrades += amount;
-  progressQuest('spend', state.spentOnUpgrades);
-
-  return true;
-}
-
-    function newQuestFrom(template) {
-      return { ...template, progress: 0, completed: false };
-    }
-
-    function seedQuests() {
-      const pool = [...questTemplates].sort(() => Math.random() - 0.5);
-      state.activeQuests = pool.slice(0, 3).map(newQuestFrom);
-    }
-
-    function progressQuest(type, value) {
-      state.activeQuests.forEach((quest) => {
-        if (quest.completed || quest.type !== type) return;
-        quest.progress = Math.max(quest.progress, value);
-        if (quest.progress >= quest.target) completeQuest(quest);
-      });
-      renderQuests();
-    }
-
-    function completeQuest(quest) {
-      if (quest.completed) return;
-      quest.completed = true;
-      const reward = Math.floor(quest.reward * state.questPower);
-      addPoints(reward, 'quest');
-      showThought(`Quest complete: ${quest.name}. +${reward.toFixed(0)} points.`);
-      unlockAchievement(`quest_${quest.id}`, 'Quest Resolved', `${quest.name} paid out ${reward.toFixed(0)} points.`);
-      setTimeout(() => {
-        const available = questTemplates.filter(q => !state.activeQuests.some(active => active.id === q.id && !active.completed));
-        const replacement = randomFrom(available.length ? available : questTemplates);
-        const idx = state.activeQuests.indexOf(quest);
-        if (idx >= 0) state.activeQuests[idx] = newQuestFrom(replacement);
-        renderQuests();
-      }, 1400);
-    }
-
-    function spawnEvent() {
-      if (state.activeEvent) return;
-      const base = randomFrom(eventTemplates);
-      state.activeEvent = { ...base, remaining: base.duration };
-      el.eventTitle.textContent = base.title;
-      el.eventDescription.textContent = base.desc;
-      el.eventButton.textContent = base.buff ? 'Accept Offer' : 'Resolve Event';
-      el.eventCard.classList.add('show');
-      el.eventHint.textContent = `${base.title} is active.`;
-    }
-
-    function resolveEvent(success) {
-      const event = state.activeEvent;
-      if (!event) return;
-      if (success) {
-        addPoints(event.reward, 'event');
-        state.eventsResolved += 1;
-        progressQuest('events', state.eventsResolved);
-        showThought(`${event.title} resolved. +${event.reward} points.`);
-        if (event.buff) state.crabBuffTimer = 20;
-      } else if (event.penalty) {
-        state.points = Math.max(0, state.points + event.penalty);
-        showThought(`${event.title} slipped away. ${event.penalty} points.`);
-      }
-      if (state.eventsResolved >= 5) unlockAchievement('events5', 'Beach Trouble Specialist', 'You handled five rare events.');
-      state.activeEvent = null;
-      state.eventCooldown = 12 + Math.random() * 12;
-      el.eventCard.classList.remove('show');
-      el.eventHint.textContent = 'Watch for unusual beach incidents.';
-      renderHUD();
-    }
-
-    function handlePonder() {
-      const meter = state.ponderMeter;
-      const dist = Math.abs(meter - 0.5);
-      let quality = 'Poor';
-      let rewardMult = 0.65;
-      let comboGain = 0;
-
-      if (dist < 0.05) {
-        quality = 'Perfect';
-        rewardMult = 2.3;
-        comboGain = 2;
-        state.perfects += 1;
-        progressQuest('perfect', state.perfects);
-      } else if (dist < 0.1) {
-        quality = 'Great';
-        rewardMult = 1.65;
-        comboGain = 1;
-      } else if (dist < 0.18) {
-        quality = 'Good';
-        rewardMult = 1.15;
-        comboGain = 1;
-      } else {
-        state.combo = 0;
+      if (wholeSeconds > 0 && wholeSeconds % 12 === 0 && !state.shownThought) {
+        showThought();
       }
 
-      if (comboGain > 0) {
-        state.combo += comboGain;
-        state.bestCombo = Math.max(state.bestCombo, state.combo);
-        progressQuest('combo', state.bestCombo);
+      if (wholeSeconds === 10) {
+        unlockAchievement('settled', 'Settled In', 'You remained convincingly coconut.');
       }
 
-      const sunsetBoost = state.dayContext === 'sunset' ? 1.45 : 1;
-      const comboBoost = 1 + state.combo * 0.08;
-      const reward = Math.max(6, Math.round(10 * rewardMult * state.ponderPower * sunsetBoost * comboBoost));
-      addPoints(reward, quality === 'Perfect' ? 'perfect' : 'ponder');
-
-      el.ponderFeedback.textContent = `${quality} Ponder · +${reward} points`;
-      if (quality === 'Perfect') unlockAchievement('first_perfect', 'Perfect Ponder', 'You hit the stillness window exactly.');
-      if (state.bestCombo >= 10) unlockAchievement('combo10', 'Serenity Engine', 'You reached combo 10.');
-      showThought(`${quality} ponder. ${quality === 'Perfect' ? 'The beach approves.' : 'The coconut remains employed.'}`);
-      renderHUD();
-    }
-
-function renderUpgrades() {
-  el.upgradeList.innerHTML = '';
-
-  baseUpgradeDefs.forEach((def) => {
-    const level = state.upgrades[def.id];
-    const cost = getUpgradeCost(def);
-
-    const row = document.createElement('div');
-    row.className = 'upgrade-item';
-
-    row.innerHTML = `
-      <div>
-        <div style="font-size:12px;font-weight:700;">${def.name}</div>
-        <div class="muted upgrade-level-${def.id}" style="font-size:10px;line-height:1.35;">
-          ${def.desc} · Lv ${level}
-        </div>
-      </div>
-      <button class="upgrade-button" data-upgrade-id="${def.id}" ${state.points < cost ? 'disabled' : ''}>
-        ${formatNumber(cost)}
-      </button>
-    `;
-
-    const button = row.querySelector('button');
-    button.addEventListener('click', () => {
-      const latestCost = getUpgradeCost(def);
-      if (!spendPoints(latestCost)) return;
-
-      state.upgrades[def.id] += 1;
-      recomputeStats();
-
-      const levelLabel = row.querySelector(`.upgrade-level-${def.id}`);
-      levelLabel.textContent = `${def.desc} · Lv ${state.upgrades[def.id]}`;
-
-      refreshUpgradeButtons();
-      renderHUD();
-      renderCycleText();
-    });
-
-    el.upgradeList.appendChild(row);
-  });
-}
-
-    function renderQuests() {
-      el.questList.innerHTML = '';
-      state.activeQuests.forEach((quest) => {
-        const item = document.createElement('div');
-        item.className = 'quest-item';
-        const pct = clamp((quest.progress / quest.target) * 100, 0, 100);
-        item.innerHTML = `
-          <div>
-            <div style="font-size:12px;font-weight:700;">${quest.name}</div>
-            <div class="bar-track" style="margin-top:6px;height:8px;"><div class="bar-fill" style="width:${pct}%;"></div></div>
-          </div>
-          <div class="muted" style="font-size:10px;">${Math.min(quest.progress, quest.target)}/${quest.target}</div>
-        `;
-        el.questList.appendChild(item);
-      });
-    }
-
-    function getPrestigeReward() {
-      return Math.floor(Math.sqrt(state.totalEarned / 500));
-    }
-
-function renderHUD() {
-  el.points.textContent = formatNumber(state.points);
-  el.passive.textContent = getPassiveRate().toFixed(1);
-  el.multiplier.textContent = `x${(1 + state.combo * 0.08).toFixed(2)}`;
-  el.combo.textContent = String(state.combo);
-  el.eventRate.textContent = `${state.eventRate.toFixed(2)}x`;
-  el.essence.textContent = String(state.essence);
-
-  const prestigeReward = getPrestigeReward();
-  el.prestigeReward.textContent = String(prestigeReward);
-  el.prestigeButton.disabled = prestigeReward <= 0;
-
-  el.achievementCount.textContent = `${state.achievements} unlocked`;
-}
-function refreshUpgradeButtons() {
-  const buttons = el.upgradeList.querySelectorAll('button[data-upgrade-id]');
-  buttons.forEach((button) => {
-    const def = baseUpgradeDefs.find(u => u.id === button.dataset.upgradeId);
-    if (!def) return;
-
-    const cost = getUpgradeCost(def);
-    button.textContent = formatNumber(cost);
-    button.disabled = state.points < cost;
-  });
-}
-
-    function renderCycleText() {
-      if (state.dayContext === 'sunset') {
-        el.cycleBonus.textContent = 'Sunset crit window: Ponder rewards are boosted.';
-      } else if (state.dayContext === 'night') {
-        el.cycleBonus.textContent = 'Night shift: rare events and moon income are stronger.';
-      } else {
-        el.cycleBonus.textContent = 'Daylight efficiency active.';
+      if (wholeSeconds === 60) {
+        unlockAchievement('minute', 'Minute of Purpose', 'A full minute of elite observation.');
       }
-    }
-
-    function renderAllUI() {
-      renderHUD();
-      renderQuests();
-      renderCycleText();
-    }
-
-    function updateGameSystems(delta, t, ms) {
-      state.ponderMeter += delta * 0.65 * state.ponderDir;
-      if (state.ponderMeter >= 1) { state.ponderMeter = 1; state.ponderDir = -1; }
-      if (state.ponderMeter <= 0) { state.ponderMeter = 0; state.ponderDir = 1; }
-      el.ponderFill.style.width = `${state.ponderMeter * 100}%`;
-
-      const passiveGain = getPassiveRate() * delta;
-      addPoints(passiveGain, 'idle');
-
-      if (state.crabBuffTimer > 0) state.crabBuffTimer = Math.max(0, state.crabBuffTimer - delta);
-
-      state.eventCooldown -= delta * state.eventRate;
-      if (state.eventCooldown <= 0 && !state.activeEvent) spawnEvent();
-
-      if (state.activeEvent) {
-        state.activeEvent.remaining -= delta;
-        el.eventTimer.textContent = `${state.activeEvent.remaining.toFixed(1)}s`;
-        if (state.activeEvent.remaining <= 0) resolveEvent(false);
-      }
-
-      progressQuest('time', Math.floor(ms / 1000));
-      progressQuest('day', state.dayNumber);
-      if (state.dayContext === 'night') progressQuest('night', 1);
     }
 
     function initRenderer() {
@@ -1118,11 +773,13 @@ function refreshUpgradeButtons() {
 
     function updateOrbitCamera() {
       if (!orbitState) return;
+
       const s = orbitState;
       const cp = Math.cos(s.pitch);
       const sp = Math.sin(s.pitch);
       const cy = Math.cos(s.yaw);
       const sy = Math.sin(s.yaw);
+
       camera.position.set(
         s.target.x + sy * cp * s.distance,
         s.target.y + sp * s.distance,
@@ -1136,11 +793,13 @@ function refreshUpgradeButtons() {
       scene.background = createSkyTexture();
       drawSkyGradient(scene.background, 0.35);
       scene.fog = new THREE.FogExp2(0xd9bc97, 0.0115);
+
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
     }
 
     function initOrbitControls() {
       const mobile = isMobileViewport();
+
       orbitState = {
         target: new THREE.Vector3(0, 0.95, 0.7),
         yaw: -0.08,
@@ -1155,671 +814,615 @@ function refreshUpgradeButtons() {
         lastX: 0,
         lastY: 0
       };
+
       updateOrbitCamera();
     }
+
     function initLights() {
-  hemiLight = new THREE.HemisphereLight(0xffd9a8, 0x4d6f84, 0.9);
-  ambientLight = new THREE.AmbientLight(0xfff1dc, 0.22);
-  scene.add(hemiLight);
-  scene.add(ambientLight);
-
-  sunLight = new THREE.DirectionalLight(0xffc97a, 1.95);
-  sunLight.position.set(34, 18, 10);
-  sunLight.castShadow = true;
-  sunLight.shadow.mapSize.width = 2048;
-  sunLight.shadow.mapSize.height = 2048;
-  sunLight.shadow.camera.left = -70;
-  sunLight.shadow.camera.right = 70;
-  sunLight.shadow.camera.top = 70;
-  sunLight.shadow.camera.bottom = -70;
-  sunLight.shadow.camera.far = 170;
-  scene.add(sunLight);
-
-  sunMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(5.4, 32, 32),
-    new THREE.MeshBasicMaterial({
-      color: 0xffd38a,
-      fog: false,
-      transparent: true,
-      opacity: 0.98
-    })
-  );
-  sunMesh.position.set(0, 9.4, -28);
-  scene.add(sunMesh);
-
-  moonMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(3.2, 24, 24),
-    new THREE.MeshBasicMaterial({
-      color: 0xdfe8ff,
-      fog: false,
-      transparent: true,
-      opacity: 0
-    })
-  );
-  moonMesh.position.set(-10, 6, -30);
-  scene.add(moonMesh);
-
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 280;
-  const positions = new Float32Array(starCount * 3);
-
-  for (let i = 0; i < starCount; i++) {
-    const radius = 140 + Math.random() * 40;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.random() * Math.PI * 0.45;
-
-    positions[i * 3] = Math.cos(theta) * Math.cos(phi) * radius;
-    positions[i * 3 + 1] = Math.abs(Math.sin(phi)) * radius * 0.9 + 18;
-    positions[i * 3 + 2] = -Math.sin(theta) * Math.cos(phi) * radius;
-  }
-
-  starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-  const starMaterial = new THREE.PointsMaterial({
-    color: 0xe9f1ff,
-    size: 1.1,
-    transparent: true,
-    opacity: 0,
-    depthWrite: false,
-    fog: false,
-    sizeAttenuation: true
-  });
-
-  starField = new THREE.Points(starGeometry, starMaterial);
-  scene.add(starField);
-}
-
-function updateHUD(ms) {
-  el.timer.textContent = formatElapsedLabel(ms);
-  renderHUD();
-  refreshUpgradeButtons();
-}
-
-function animateDayNight(t) {
-  const { hours24, minutes, dayNumber, phase } = getGameTimeData(t);
-  state.dayNumber = dayNumber;
-
-  const daylight = clamp((Math.sin(phase) + 1) * 0.5, 0, 1);
-  const dusk = Math.max(0, 1 - Math.abs(daylight - 0.28) / 0.18);
-  const night = 1 - daylight;
-  state.dayContext = dusk > 0.55 ? 'sunset' : night > 0.62 ? 'night' : 'day';
-
-  const starVisibility = Math.max(0, (night - 0.25) / 0.75);
-
-  drawSkyGradient(scene.background, phase);
-
-  scene.fog.color.copy(lerpColorHex('#d9bc97', '#253047', night * 0.9));
-  scene.fog.density = 0.0115 + night * 0.004;
-
-  hemiLight.color.copy(lerpColorHex('#ffd9a8', '#5c6f9e', night * 0.9));
-  hemiLight.groundColor.copy(lerpColorHex('#4d6f84', '#18202d', night * 0.95));
-  hemiLight.intensity = 0.9 - night * 0.38;
-
-  ambientLight.color.copy(lerpColorHex('#fff1dc', '#8ea3d2', night * 0.45));
-  ambientLight.intensity = 0.22 + night * 0.05;
-
-  sunLight.color.copy(lerpColorHex('#ffc97a', '#8da6ff', night * 0.45));
-  sunLight.intensity = Math.max(0.12, 1.95 * daylight + dusk * 0.3);
-
-  const sunX = Math.cos(phase) * 34;
-  const sunY = Math.sin(phase) * 20 + 3;
-  sunLight.position.set(sunX, Math.max(1.5, sunY), 10);
-
-  sunMesh.position.set(Math.cos(phase) * 4, Math.sin(phase) * 11 + 2, -28);
-  sunMesh.scale.setScalar(0.9 + daylight * 0.18 + dusk * 0.08);
-  sunMesh.material.color.copy(lerpColorHex('#ffd38a', '#d9e6ff', night * 0.55));
-  sunMesh.material.opacity = Math.max(0.08, 0.98 * daylight + dusk * 0.2 - night * 0.2);
-
-  const moonPhase = phase + Math.PI;
-  moonMesh.position.set(Math.cos(moonPhase) * 6, Math.sin(moonPhase) * 10 + 4, -30);
-  moonMesh.material.opacity = starVisibility * 0.9;
-  moonMesh.scale.setScalar(0.95 + starVisibility * 0.08);
-
-  if (starField) {
-    starField.material.opacity = starVisibility * 0.95;
-    starField.rotation.y = t * 0.01;
-  }
-
-  if (beachMesh) {
-    beachMesh.material.color.copy(lerpColorHex('#ddc298', '#7e776c', night * 0.62));
-  }
-
-  if (ocean) {
-    ocean.material.color.copy(lerpColorHex('#4c7f90', '#24374d', night * 0.72));
-    ocean.material.opacity = 0.9 - night * 0.12 + Math.sin(t * 0.3) * 0.015;
-  }
-
-  if (shoreFoam) {
-    shoreFoam.material.opacity = (0.15 + Math.sin(t * 1.4) * 0.035) * (0.72 + daylight * 0.28);
-  }
-
-  el.temp.textContent = `${Math.round(22 + daylight * 7 + dusk * 1 - night * 2)}°C`;
-  el.gameDay.textContent = `Day ${dayNumber}`;
-  el.gameTime.textContent = formatGameClock(hours24, minutes);
-
-  renderCycleText();
-
-  const bloomEl = document.querySelector('.bloom');
-  const warmEl = document.querySelector('.warm-bottom');
-
-  if (bloomEl) bloomEl.style.opacity = String(0.1 + daylight * 0.55 + dusk * 0.22);
-  if (warmEl) warmEl.style.opacity = String(Math.max(0.08, 0.25 + dusk * 0.75 - night * 0.18));
-}
-
-function initBeach() {
-  const geometry = new THREE.PlaneGeometry(190, 126, 260, 170);
-  const pos = geometry.attributes.position;
-
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    let z = Math.sin(x * 0.08) * 0.08 + Math.cos(y * 0.06) * 0.07;
-
-    const nest = Math.hypot(x, y + 6);
-    if (nest < 2.1) z -= (2.1 - nest) * 0.06;
-
-    const shoreBlend = THREE.MathUtils.smoothstep(y, -18, -5);
-    z -= shoreBlend * 0.62;
-
-    pos.setZ(i, z);
-  }
-
-  geometry.computeVertexNormals();
-
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xddc298,
-    roughness: 1,
-    metalness: 0
-  });
-
-  beachMesh = new THREE.Mesh(geometry, material);
-  beachMesh.rotation.x = -Math.PI / 2;
-  beachMesh.receiveShadow = true;
-  scene.add(beachMesh);
-}
-
-function initOcean() {
-  const geometry = new THREE.PlaneGeometry(520, 240, 230, 120);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x4c7f90,
-    roughness: 0.22,
-    metalness: 0.08,
-    transparent: true,
-    opacity: 0.94
-  });
-
-  ocean = new THREE.Mesh(geometry, material);
-  ocean.rotation.x = -Math.PI / 2;
-  ocean.position.set(0, -0.88, -22.5);
-  scene.add(ocean);
-
-  shoreFoam = new THREE.Mesh(
-    new THREE.PlaneGeometry(180, 8, 80, 1),
-    new THREE.MeshBasicMaterial({
-      color: 0xfff4df,
-      transparent: true,
-      opacity: 0.18
-    })
-  );
-  shoreFoam.rotation.x = -Math.PI / 2;
-  shoreFoam.position.set(0, -0.1, -2.9);
-  scene.add(shoreFoam);
-}
-
-function initCoconut() {
-  coconut = new THREE.Group();
-
-  const bodyGeo = new THREE.IcosahedronGeometry(1.0, 6);
-  const pos = bodyGeo.attributes.position;
-
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    const z = pos.getZ(i);
-    const angle = Math.atan2(z, x);
-    const radialNoise = Math.sin(angle * 3.0) * 0.02 + Math.cos(y * 5.4) * 0.015;
-    const frontBulge = z > 0 ? z * 0.04 : z * 0.01;
-    const sideFullness = 1.0 + Math.cos(angle * 2.0) * 0.03;
-
-    pos.setXYZ(
-      i,
-      x * (0.88 + radialNoise) * sideFullness,
-      y * (1.02 + Math.sin(angle * 2.0) * 0.015),
-      z * (0.84 + frontBulge + radialNoise * 0.6)
-    );
-  }
-
-  bodyGeo.computeVertexNormals();
-
-  const bodyMat = new THREE.MeshStandardMaterial({
-    color: 0x6b4528,
-    roughness: 1,
-    metalness: 0,
-    flatShading: false
-  });
-
-  const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.castShadow = true;
-  body.receiveShadow = true;
-  coconut.add(body);
-
-  const fiberMat = new THREE.MeshStandardMaterial({
-    color: 0x8c6239,
-    roughness: 1,
-    metalness: 0,
-    transparent: true,
-    opacity: 0.28
-  });
-
-  for (let i = 0; i < 220; i++) {
-    const strandLen = 0.05 + Math.random() * 0.08;
-    const strand = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.0015, 0.004, strandLen, 4),
-      fiberMat
-    );
-
-    const theta = Math.random() * Math.PI * 2;
-    const v = Math.random() * 2 - 1;
-    const r = Math.sqrt(1 - v * v);
-    const nx = Math.cos(theta) * r;
-    const ny = v;
-    const nz = Math.sin(theta) * r;
-
-    strand.position.set(nx * 0.86, ny * 0.98, nz * 0.79);
-    strand.lookAt(nx * 1.2, ny * 1.2, nz * 1.2);
-    strand.rotateX(Math.PI / 2);
-    strand.rotation.z += (Math.random() - 0.5) * 2.0;
-    coconut.add(strand);
-  }
-
-  const ridgeMat = new THREE.MeshStandardMaterial({
-    color: 0x5e3a22,
-    roughness: 1,
-    metalness: 0,
-    transparent: true,
-    opacity: 0.35
-  });
-
-  for (let i = 0; i < 5; i++) {
-    const ridge = new THREE.Mesh(
-      new THREE.TorusGeometry(0.58 + i * 0.035, 0.015, 8, 80, Math.PI * 1.9),
-      ridgeMat
-    );
-    ridge.rotation.x = Math.PI / 2;
-    ridge.rotation.z = i * 0.22 + 0.15;
-    ridge.scale.set(1.02, 1.12 - i * 0.04, 1);
-    coconut.add(ridge);
-  }
-
-  const patchMat = new THREE.MeshStandardMaterial({
-    color: 0x9b7148,
-    roughness: 1,
-    metalness: 0,
-    transparent: true,
-    opacity: 0.16
-  });
-
-  const patchSpecs = [
-    [-0.34, 0.18, 0.55, 0.16, 0.08, -0.5],
-    [0.38, -0.12, 0.58, 0.18, 0.08, 0.45],
-    [-0.2, -0.38, 0.43, 0.14, 0.07, 0.3],
-    [0.18, 0.42, 0.42, 0.12, 0.06, -0.2]
-  ];
-
-  patchSpecs.forEach(([x, y, z, sx, sy, rot]) => {
-    const patch = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 18, 18),
-      patchMat
-    );
-    patch.scale.set(sx, sy, 0.035);
-    patch.position.set(x, y, z);
-    patch.rotation.z = rot;
-    patch.rotation.x = -0.12;
-    coconut.add(patch);
-  });
-
-  const eyeGroup = new THREE.Group();
-  eyeGroup.position.set(0.0, -0.02, 0.82);
-  eyeGroup.rotation.x = -0.04;
-
-  const eyeRingMat = new THREE.MeshStandardMaterial({
-    color: 0x815a39,
-    roughness: 1,
-    metalness: 0
-  });
-
-  const eyeSocketMat = new THREE.MeshStandardMaterial({
-    color: 0x452919,
-    roughness: 1,
-    metalness: 0
-  });
-
-  [
-    [-0.17, 0.08, 0.11],
-    [0.0, -0.03, 0.125],
-    [0.17, 0.08, 0.11]
-  ].forEach(([x, y, r]) => {
-    const ring = new THREE.Mesh(
-      new THREE.CircleGeometry(r * 1.35, 28),
-      eyeRingMat
-    );
-    ring.position.set(x, y, 0);
-    eyeGroup.add(ring);
-
-    const socket = new THREE.Mesh(
-      new THREE.CircleGeometry(r, 28),
-      eyeSocketMat
-    );
-    socket.position.set(x, y, 0.01);
-    eyeGroup.add(socket);
-  });
-
-  coconut.add(eyeGroup);
-
-  const topStemMat = new THREE.MeshStandardMaterial({
-    color: 0x725133,
-    roughness: 1,
-    metalness: 0
-  });
-
-  const stemBase = new THREE.Mesh(
-    new THREE.CircleGeometry(0.08, 20),
-    topStemMat
-  );
-  stemBase.rotation.x = -Math.PI / 2;
-  stemBase.position.y = 1.0;
-  coconut.add(stemBase);
-
-  for (let i = 0; i < 10; i++) {
-    const tuft = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.004, 0.012, 0.14 + Math.random() * 0.05, 5),
-      topStemMat
-    );
-    tuft.position.set(
-      (Math.random() - 0.5) * 0.08,
-      1.01 + Math.random() * 0.02,
-      (Math.random() - 0.5) * 0.08
-    );
-    tuft.rotation.z = (Math.random() - 0.5) * 1.1;
-    tuft.rotation.x = (Math.random() - 0.5) * 1.1;
-    coconut.add(tuft);
-  }
-
-  const baseShadow = new THREE.Mesh(
-    new THREE.CircleGeometry(0.92, 40),
-    new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.12
-    })
-  );
-  baseShadow.rotation.x = -Math.PI / 2;
-  baseShadow.position.y = -1.01;
-  baseShadow.scale.set(1.02, 0.72, 1);
-  coconut.add(baseShadow);
-
-  const mobileScale = isMobileViewport() ? 0.88 : 1.0;
-  coconut.position.set(0, 1.03, 0.7);
-  coconut.scale.set(1.12 * mobileScale, 1.22 * mobileScale, 1.02 * mobileScale);
-  coconut.rotation.set(-0.06, -0.18, -0.08);
-  scene.add(coconut);
-}
-
-function createPalm(x, z, height, lean) {
-  const group = new THREE.Group();
-
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.17, 0.32, height, 8, 14),
-    new THREE.MeshStandardMaterial({
-      color: 0x3b281e,
-      roughness: 1
-    })
-  );
-  trunk.position.y = height / 2;
-  trunk.rotation.z = lean;
-  trunk.castShadow = true;
-  group.add(trunk);
-
-  const top = new THREE.Vector3(Math.sin(lean) * (height * 0.45), height, 0);
-
-  for (let i = 0; i < 7; i++) {
-    const leaf = new THREE.Mesh(
-      new THREE.PlaneGeometry(4.8, 0.8, 10, 1),
-      new THREE.MeshStandardMaterial({
-        color: i % 2 ? 0x243a21 : 0x2e4728,
-        side: THREE.DoubleSide,
-        roughness: 1
-      })
-    );
-    leaf.position.copy(top);
-    leaf.rotation.x = -0.65;
-    leaf.rotation.y = (Math.PI * 2 * i) / 7;
-    leaf.rotation.z = -0.3;
-    leaf.castShadow = true;
-    group.add(leaf);
-  }
-
-  group.position.set(x, 0, z);
-  group.rotation.y = (x + z) * 0.06;
-  return group;
-}
-
-function createBird(x, y, z, scale = 1) {
-  const bird = new THREE.Group();
-  const wingMat = new THREE.MeshBasicMaterial({ color: 0x2f241d, fog: true });
-
-  const leftWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
-  leftWing.position.set(-0.35, 0, 0);
-  leftWing.rotation.z = 0.22;
-
-  const rightWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
-  rightWing.position.set(0.35, 0, 0);
-  rightWing.rotation.z = -0.22;
-
-  bird.add(leftWing, rightWing);
-  bird.position.set(x, y, z);
-  bird.scale.setScalar(scale);
-  bird.userData = {
-    flapOffset: Math.random() * Math.PI * 2,
-    driftOffset: Math.random() * Math.PI * 2,
-    speed: 0.08 + Math.random() * 0.04,
-    wingSpan: 0.45 + Math.random() * 0.18,
-    baseX: x,
-    baseY: y,
-    baseZ: z
-  };
-
-  return bird;
-}
-
-function addFarEnvironmentRing() {
-  const farPalmGroup = new THREE.Group();
-
-  for (let i = 0; i < 30; i++) {
-    const angle = (i / 30) * Math.PI * 2;
-    const radius = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
-    const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * radius;
-    const h = 10 + Math.random() * 8;
-    const lean = 0.12 + Math.random() * 0.16;
-    farPalmGroup.add(createPalm(x, z, h, lean));
-  }
-
-  scene.add(farPalmGroup);
-
-  const moundMat = new THREE.MeshStandardMaterial({
-    color: 0x35503a,
-    roughness: 1,
-    metalness: 0
-  });
-
-  for (let i = 0; i < 18; i++) {
-    const angle = (i / 18) * Math.PI * 2 + 0.08;
-    const radius = 84 + Math.random() * 18;
-    const mound = new THREE.Mesh(
-      new THREE.SphereGeometry(4 + Math.random() * 5, 16, 16),
-      moundMat
-    );
-    mound.scale.y = 0.4 + Math.random() * 0.25;
-    mound.position.set(Math.cos(angle) * radius, 0.6, Math.sin(angle) * radius);
-    scene.add(mound);
-  }
-}
-
-function initBackground() {
-  palmGroup = new THREE.Group();
-
-  [
-    [-54,-8,11,0.16],[-43,-14,12,0.18],[-34,-21,12,0.23],[-25,-29,13,0.18],
-    [-13,-12,9,0.12],[6,-15,10,0.16],[18,-10,12,0.18],[28,-14,13,0.24],
-    [37,-8,15,0.2],[46,-12,14,0.26],[58,-5,18,0.28],[64,-16,16,0.22],
-    [16,-25,12,0.18],[34,-27,13,0.22],[-47,-27,15,0.25],[-60,-17,17,0.26]
-  ].forEach(args => palmGroup.add(createPalm(...args)));
-
-  scene.add(palmGroup);
-
-  hutGroup = new THREE.Group();
-  const hutMat = new THREE.MeshStandardMaterial({ color: 0x35251b, roughness: 1 });
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x5c462b, roughness: 1 });
-
-  [
-    [-47,-19,1.05],[-35,-22,1.2],[-18,-21,1.38],[1,-23,1.18],[18,-19,1.48],[34,-18,1.22]
-  ].forEach(([x, z, s]) => {
-    const hut = new THREE.Group();
-
-    const base = new THREE.Mesh(
-      new THREE.BoxGeometry(3.2 * s, 1.7 * s, 2.4 * s),
-      hutMat
-    );
-    const roof = new THREE.Mesh(
-      new THREE.ConeGeometry(2.5 * s, 1.8 * s, 4),
-      roofMat
-    );
-
-    base.position.y = 1.3 * s;
-    roof.position.y = 2.95 * s;
-    roof.rotation.y = Math.PI / 4;
-    base.castShadow = true;
-    roof.castShadow = true;
-
-    hut.add(base, roof);
-    hut.position.set(x, 0, z);
-    hut.rotation.y = Math.random() * Math.PI;
-    hutGroup.add(hut);
-  });
-
-  scene.add(hutGroup);
-
-  birdGroup = new THREE.Group();
-  [
-    [-10,8.7,-18,0.72],
-    [-2,9.1,-17,0.66],
-    [10,9.5,-19,0.6],
-    [19,8.5,-16.5,0.7],
-    [28,9.0,-20,0.62]
-  ].forEach(args => birdGroup.add(createBird(...args)));
-
-  scene.add(birdGroup);
-
-  const rockGeo = new THREE.DodecahedronGeometry(0.5, 0);
-  const rockMat = new THREE.MeshStandardMaterial({ color: 0x5a4334, roughness: 1 });
-
-  for (let i = 0; i < 7; i++) {
-    const rock = new THREE.Mesh(rockGeo, rockMat);
-    rock.scale.setScalar(0.7 + Math.random() * 1.7);
-    rock.position.set(18 + Math.random() * 42, 0.25, -1 - Math.random() * 10);
-    rock.rotation.set(Math.random(), Math.random(), Math.random());
-    rock.castShadow = true;
-    scene.add(rock);
-  }
-
-  for (let i = 0; i < 5; i++) {
-    const rock = new THREE.Mesh(rockGeo, rockMat);
-    rock.scale.setScalar(0.6 + Math.random() * 1.2);
-    rock.position.set(-14 - Math.random() * 24, 0.22, -2 - Math.random() * 9);
-    rock.rotation.set(Math.random(), Math.random(), Math.random());
-    rock.castShadow = true;
-    scene.add(rock);
-  }
-
-  addFarEnvironmentRing();
-}
-
-function animateOcean(t) {
-  const pos = ocean.geometry.attributes.position;
-
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    const farSwell = Math.sin(x * 0.05 + t * 0.72) * 0.34;
-    const crossSwell = Math.cos(y * 0.08 + t * 0.46) * 0.22;
-    const nearRipple = Math.sin((x + y) * 0.04 + t * 1.18) * 0.15;
-    const banding = Math.sin(y * 0.12 + t * 0.62) * 0.08;
-    pos.setZ(i, farSwell + crossSwell + nearRipple + banding);
-  }
-
-  pos.needsUpdate = true;
-  ocean.geometry.computeVertexNormals();
-
-  shoreFoam.position.z = -2.9 + Math.sin(t * 0.9) * 0.14;
-  shoreFoam.position.x = Math.sin(t * 0.55) * 0.12;
-}
-
-function animateEnvironment(t) {
-  palmGroup.children.forEach((palm, i) => {
-    palm.rotation.z = Math.sin(t * 0.55 + i * 0.6) * 0.008;
-  });
-
-  hutGroup.children.forEach((hut, i) => {
-    hut.position.y = Math.sin(t * 0.35 + i * 0.8) * 0.01;
-  });
-
-  birdGroup.children.forEach((bird, i) => {
-    const d = bird.userData;
-    bird.position.x = d.baseX + Math.sin(t * d.speed + d.driftOffset + i * 0.2) * 0.9;
-    bird.position.y = d.baseY + Math.cos(t * (d.speed * 1.7) + d.driftOffset) * 0.25;
-    bird.position.z = d.baseZ + Math.sin(t * (d.speed * 0.8) + i) * 0.5;
-    bird.children[0].rotation.z = 0.18 + Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
-    bird.children[1].rotation.z = -0.18 - Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
-  });
-}
-
-function animateHero(t) {
-  coconut.position.y = 1.03 + Math.sin(t * 0.55) * 0.003;
-  coconut.rotation.x = -0.06 + Math.cos(t * 0.22) * 0.0015;
-  coconut.rotation.y = -0.18;
-  coconut.rotation.z = -0.08 + Math.sin(t * 0.28) * 0.0015;
-}
-
-function animateCamera(t) {
-  if (!orbitState) return;
-  if (!orbitState.isPointerDown && !isMobileViewport()) {
-    orbitState.yaw += 0.00035;
-    updateOrbitCamera();
-  }
-}
+      hemiLight = new THREE.HemisphereLight(0xffd9a8, 0x4d6f84, 0.9);
+      ambientLight = new THREE.AmbientLight(0xfff1dc, 0.22);
+      scene.add(hemiLight);
+      scene.add(ambientLight);
+
+      sunLight = new THREE.DirectionalLight(0xffc97a, 1.95);
+      sunLight.position.set(34, 18, 10);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.left = -70;
+      sunLight.shadow.camera.right = 70;
+      sunLight.shadow.camera.top = 70;
+      sunLight.shadow.camera.bottom = -70;
+      sunLight.shadow.camera.far = 170;
+      scene.add(sunLight);
+
+      sunMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(5.4, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffd38a, fog: false, transparent: true, opacity: 0.98 })
+      );
+      sunMesh.position.set(0, 9.4, -28);
+      scene.add(sunMesh);
+
+      moonMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(3.2, 24, 24),
+        new THREE.MeshBasicMaterial({ color: 0xdfe8ff, fog: false, transparent: true, opacity: 0 })
+      );
+      moonMesh.position.set(-10, 6, -30);
+      scene.add(moonMesh);
+
+      const starGeometry = new THREE.BufferGeometry();
+      const starCount = 280;
+      const positions = new Float32Array(starCount * 3);
+
+      for (let i = 0; i < starCount; i++) {
+        const radius = 140 + Math.random() * 40;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI * 0.45;
+
+        positions[i * 3] = Math.cos(theta) * Math.cos(phi) * radius;
+        positions[i * 3 + 1] = Math.abs(Math.sin(phi)) * radius * 0.9 + 18;
+        positions[i * 3 + 2] = -Math.sin(theta) * Math.cos(phi) * radius;
+      }
+
+      starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+      const starMaterial = new THREE.PointsMaterial({
+        color: 0xe9f1ff,
+        size: 1.1,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        fog: false,
+        sizeAttenuation: true
+      });
+
+      starField = new THREE.Points(starGeometry, starMaterial);
+      scene.add(starField);
+    }
+
+    function initBeach() {
+      const geometry = new THREE.PlaneGeometry(190, 126, 260, 170);
+      const pos = geometry.attributes.position;
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        let z = Math.sin(x * 0.08) * 0.08 + Math.cos(y * 0.06) * 0.07;
+        const nest = Math.hypot(x, y + 6);
+        if (nest < 2.1) z -= (2.1 - nest) * 0.06;
+        const shoreBlend = THREE.MathUtils.smoothstep(y, -18, -5);
+        z -= shoreBlend * 0.62;
+        pos.setZ(i, z);
+      }
+
+      geometry.computeVertexNormals();
+
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xddc298,
+        roughness: 1,
+        metalness: 0
+      });
+
+      beachMesh = new THREE.Mesh(geometry, material);
+      beachMesh.rotation.x = -Math.PI / 2;
+      beachMesh.receiveShadow = true;
+      scene.add(beachMesh);
+    }
+
+    function initOcean() {
+      const geometry = new THREE.PlaneGeometry(520, 240, 230, 120);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x4c7f90,
+        roughness: 0.22,
+        metalness: 0.08,
+        transparent: true,
+        opacity: 0.94
+      });
+
+      ocean = new THREE.Mesh(geometry, material);
+      ocean.rotation.x = -Math.PI / 2;
+      ocean.position.set(0, -0.88, -22.5);
+      scene.add(ocean);
+
+      shoreFoam = new THREE.Mesh(
+        new THREE.PlaneGeometry(180, 8, 80, 1),
+        new THREE.MeshBasicMaterial({ color: 0xfff4df, transparent: true, opacity: 0.18 })
+      );
+      shoreFoam.rotation.x = -Math.PI / 2;
+      shoreFoam.position.set(0, -0.1, -2.9);
+      scene.add(shoreFoam);
+    }
+
+    function initCoconut() {
+      coconut = new THREE.Group();
+
+      const bodyGeo = new THREE.IcosahedronGeometry(1.0, 6);
+      const pos = bodyGeo.attributes.position;
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        const angle = Math.atan2(z, x);
+        const radialNoise = Math.sin(angle * 3.0) * 0.02 + Math.cos(y * 5.4) * 0.015;
+        const frontBulge = z > 0 ? z * 0.04 : z * 0.01;
+        const sideFullness = 1.0 + Math.cos(angle * 2.0) * 0.03;
+
+        pos.setXYZ(
+          i,
+          x * (0.88 + radialNoise) * sideFullness,
+          y * (1.02 + Math.sin(angle * 2.0) * 0.015),
+          z * (0.84 + frontBulge + radialNoise * 0.6)
+        );
+      }
+
+      bodyGeo.computeVertexNormals();
+
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0x6b4528,
+        roughness: 1,
+        metalness: 0,
+        flatShading: false
+      });
+
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.castShadow = true;
+      body.receiveShadow = true;
+      coconut.add(body);
+
+      const fiberMat = new THREE.MeshStandardMaterial({
+        color: 0x8c6239,
+        roughness: 1,
+        metalness: 0,
+        transparent: true,
+        opacity: 0.28
+      });
+
+      for (let i = 0; i < 220; i++) {
+        const strandLen = 0.05 + Math.random() * 0.08;
+        const strand = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.0015, 0.004, strandLen, 4),
+          fiberMat
+        );
+
+        const theta = Math.random() * Math.PI * 2;
+        const v = Math.random() * 2 - 1;
+        const r = Math.sqrt(1 - v * v);
+        const nx = Math.cos(theta) * r;
+        const ny = v;
+        const nz = Math.sin(theta) * r;
+
+        strand.position.set(nx * 0.86, ny * 0.98, nz * 0.79);
+        strand.lookAt(nx * 1.2, ny * 1.2, nz * 1.2);
+        strand.rotateX(Math.PI / 2);
+        strand.rotation.z += (Math.random() - 0.5) * 2.0;
+        coconut.add(strand);
+      }
+
+      const ridgeMat = new THREE.MeshStandardMaterial({
+        color: 0x5e3a22,
+        roughness: 1,
+        metalness: 0,
+        transparent: true,
+        opacity: 0.35
+      });
+
+      for (let i = 0; i < 5; i++) {
+        const ridge = new THREE.Mesh(
+          new THREE.TorusGeometry(0.58 + i * 0.035, 0.015, 8, 80, Math.PI * 1.9),
+          ridgeMat
+        );
+        ridge.rotation.x = Math.PI / 2;
+        ridge.rotation.z = i * 0.22 + 0.15;
+        ridge.scale.set(1.02, 1.12 - i * 0.04, 1);
+        coconut.add(ridge);
+      }
+
+      const patchMat = new THREE.MeshStandardMaterial({
+        color: 0x9b7148,
+        roughness: 1,
+        metalness: 0,
+        transparent: true,
+        opacity: 0.16
+      });
+
+      const patchSpecs = [
+        [-0.34, 0.18, 0.55, 0.16, 0.08, -0.5],
+        [0.38, -0.12, 0.58, 0.18, 0.08, 0.45],
+        [-0.2, -0.38, 0.43, 0.14, 0.07, 0.3],
+        [0.18, 0.42, 0.42, 0.12, 0.06, -0.2]
+      ];
+
+      patchSpecs.forEach(([x, y, z, sx, sy, rot]) => {
+        const patch = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 18), patchMat);
+        patch.scale.set(sx, sy, 0.035);
+        patch.position.set(x, y, z);
+        patch.rotation.z = rot;
+        patch.rotation.x = -0.12;
+        coconut.add(patch);
+      });
+
+      const eyeGroup = new THREE.Group();
+      eyeGroup.position.set(0.0, -0.02, 0.82);
+      eyeGroup.rotation.x = -0.04;
+
+      const eyeRingMat = new THREE.MeshStandardMaterial({
+        color: 0x815a39,
+        roughness: 1,
+        metalness: 0
+      });
+
+      const eyeSocketMat = new THREE.MeshStandardMaterial({
+        color: 0x452919,
+        roughness: 1,
+        metalness: 0
+      });
+
+      const eyeLayout = [
+        [-0.17, 0.08, 0.11],
+        [0.0, -0.03, 0.125],
+        [0.17, 0.08, 0.11]
+      ];
+
+      eyeLayout.forEach(([x, y, r]) => {
+        const ring = new THREE.Mesh(new THREE.CircleGeometry(r * 1.35, 28), eyeRingMat);
+        ring.position.set(x, y, 0);
+        eyeGroup.add(ring);
+
+        const socket = new THREE.Mesh(new THREE.CircleGeometry(r, 28), eyeSocketMat);
+        socket.position.set(x, y, 0.01);
+        eyeGroup.add(socket);
+      });
+
+      coconut.add(eyeGroup);
+
+      const topStemMat = new THREE.MeshStandardMaterial({
+        color: 0x725133,
+        roughness: 1,
+        metalness: 0
+      });
+
+      const stemBase = new THREE.Mesh(new THREE.CircleGeometry(0.08, 20), topStemMat);
+      stemBase.rotation.x = -Math.PI / 2;
+      stemBase.position.y = 1.0;
+      coconut.add(stemBase);
+
+      for (let i = 0; i < 10; i++) {
+        const tuft = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.004, 0.012, 0.14 + Math.random() * 0.05, 5),
+          topStemMat
+        );
+        tuft.position.set((Math.random() - 0.5) * 0.08, 1.01 + Math.random() * 0.02, (Math.random() - 0.5) * 0.08);
+        tuft.rotation.z = (Math.random() - 0.5) * 1.1;
+        tuft.rotation.x = (Math.random() - 0.5) * 1.1;
+        coconut.add(tuft);
+      }
+
+      const baseShadow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.92, 40),
+        new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.12 })
+      );
+      baseShadow.rotation.x = -Math.PI / 2;
+      baseShadow.position.y = -1.01;
+      baseShadow.scale.set(1.02, 0.72, 1);
+      coconut.add(baseShadow);
+
+      const mobileScale = isMobileViewport() ? 0.88 : 1.0;
+      coconut.position.set(0, 1.03, 0.7);
+      coconut.scale.set(1.12 * mobileScale, 1.22 * mobileScale, 1.02 * mobileScale);
+      coconut.rotation.set(-0.06, -0.18, -0.08);
+      scene.add(coconut);
+    }
+
+    function createPalm(x, z, height, lean) {
+      const group = new THREE.Group();
+
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.17, 0.32, height, 8, 14),
+        new THREE.MeshStandardMaterial({ color: 0x3b281e, roughness: 1 })
+      );
+      trunk.position.y = height / 2;
+      trunk.rotation.z = lean;
+      trunk.castShadow = true;
+      group.add(trunk);
+
+      const top = new THREE.Vector3(Math.sin(lean) * (height * 0.45), height, 0);
+
+      for (let i = 0; i < 7; i++) {
+        const leaf = new THREE.Mesh(
+          new THREE.PlaneGeometry(4.8, 0.8, 10, 1),
+          new THREE.MeshStandardMaterial({
+            color: i % 2 ? 0x243a21 : 0x2e4728,
+            side: THREE.DoubleSide,
+            roughness: 1
+          })
+        );
+        leaf.position.copy(top);
+        leaf.rotation.x = -0.65;
+        leaf.rotation.y = (Math.PI * 2 * i) / 7;
+        leaf.rotation.z = -0.3;
+        leaf.castShadow = true;
+        group.add(leaf);
+      }
+
+      group.position.set(x, 0, z);
+      group.rotation.y = (x + z) * 0.06;
+      return group;
+    }
+
+    function createBird(x, y, z, scale = 1) {
+      const bird = new THREE.Group();
+      const wingMat = new THREE.MeshBasicMaterial({ color: 0x2f241d, fog: true });
+
+      const leftWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
+      leftWing.position.set(-0.35, 0, 0);
+      leftWing.rotation.z = 0.22;
+
+      const rightWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
+      rightWing.position.set(0.35, 0, 0);
+      rightWing.rotation.z = -0.22;
+
+      bird.add(leftWing, rightWing);
+      bird.position.set(x, y, z);
+      bird.scale.setScalar(scale);
+      bird.userData = {
+        flapOffset: Math.random() * Math.PI * 2,
+        driftOffset: Math.random() * Math.PI * 2,
+        speed: 0.08 + Math.random() * 0.04,
+        wingSpan: 0.45 + Math.random() * 0.18,
+        baseX: x,
+        baseY: y,
+        baseZ: z
+      };
+
+      return bird;
+    }
+
+    function addFarEnvironmentRing() {
+      const farPalmGroup = new THREE.Group();
+
+      for (let i = 0; i < 30; i++) {
+        const angle = (i / 30) * Math.PI * 2;
+        const radius = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        const h = 10 + Math.random() * 8;
+        const lean = 0.12 + Math.random() * 0.16;
+        farPalmGroup.add(createPalm(x, z, h, lean));
+      }
+
+      scene.add(farPalmGroup);
+
+      const moundMat = new THREE.MeshStandardMaterial({
+        color: 0x35503a,
+        roughness: 1,
+        metalness: 0
+      });
+
+      for (let i = 0; i < 18; i++) {
+        const angle = (i / 18) * Math.PI * 2 + 0.08;
+        const radius = 84 + Math.random() * 18;
+        const mound = new THREE.Mesh(
+          new THREE.SphereGeometry(4 + Math.random() * 5, 16, 16),
+          moundMat
+        );
+
+        mound.scale.y = 0.4 + Math.random() * 0.25;
+        mound.position.set(Math.cos(angle) * radius, 0.6, Math.sin(angle) * radius);
+        scene.add(mound);
+      }
+    }
+
+    function initBackground() {
+      palmGroup = new THREE.Group();
+
+      [
+        [-54, -8, 11, 0.16], [-43, -14, 12, 0.18], [-34, -21, 12, 0.23], [-25, -29, 13, 0.18],
+        [-13, -12, 9, 0.12], [6, -15, 10, 0.16], [18, -10, 12, 0.18], [28, -14, 13, 0.24],
+        [37, -8, 15, 0.2], [46, -12, 14, 0.26], [58, -5, 18, 0.28], [64, -16, 16, 0.22],
+        [16, -25, 12, 0.18], [34, -27, 13, 0.22], [-47, -27, 15, 0.25], [-60, -17, 17, 0.26]
+      ].forEach(args => palmGroup.add(createPalm(...args)));
+
+      scene.add(palmGroup);
+
+      hutGroup = new THREE.Group();
+      const hutMat = new THREE.MeshStandardMaterial({ color: 0x35251b, roughness: 1 });
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x5c462b, roughness: 1 });
+
+      [
+        [-47, -19, 1.05], [-35, -22, 1.2], [-18, -21, 1.38], [1, -23, 1.18], [18, -19, 1.48], [34, -18, 1.22]
+      ].forEach(([x, z, s]) => {
+        const hut = new THREE.Group();
+
+        const base = new THREE.Mesh(new THREE.BoxGeometry(3.2 * s, 1.7 * s, 2.4 * s), hutMat);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(2.5 * s, 1.8 * s, 4), roofMat);
+
+        base.position.y = 1.3 * s;
+        roof.position.y = 2.95 * s;
+        roof.rotation.y = Math.PI / 4;
+        base.castShadow = true;
+        roof.castShadow = true;
+
+        hut.add(base, roof);
+        hut.position.set(x, 0, z);
+        hut.rotation.y = Math.random() * Math.PI;
+        hutGroup.add(hut);
+      });
+
+      scene.add(hutGroup);
+
+      birdGroup = new THREE.Group();
+      [
+        [-10, 8.7, -18, 0.72],
+        [-2, 9.1, -17, 0.66],
+        [10, 9.5, -19, 0.6],
+        [19, 8.5, -16.5, 0.7],
+        [28, 9.0, -20, 0.62]
+      ].forEach(args => birdGroup.add(createBird(...args)));
+
+      scene.add(birdGroup);
+
+      const rockGeo = new THREE.DodecahedronGeometry(0.5, 0);
+      const rockMat = new THREE.MeshStandardMaterial({ color: 0x5a4334, roughness: 1 });
+
+      for (let i = 0; i < 7; i++) {
+        const rock = new THREE.Mesh(rockGeo, rockMat);
+        rock.scale.setScalar(0.7 + Math.random() * 1.7);
+        rock.position.set(18 + Math.random() * 42, 0.25, -1 - Math.random() * 10);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true;
+        scene.add(rock);
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const rock = new THREE.Mesh(rockGeo, rockMat);
+        rock.scale.setScalar(0.6 + Math.random() * 1.2);
+        rock.position.set(-14 - Math.random() * 24, 0.22, -2 - Math.random() * 9);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true;
+        scene.add(rock);
+      }
+
+      addFarEnvironmentRing();
+    }
+
+    function animateOcean(t) {
+      const pos = ocean.geometry.attributes.position;
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const farSwell = Math.sin(x * 0.05 + t * 0.72) * 0.34;
+        const crossSwell = Math.cos(y * 0.08 + t * 0.46) * 0.22;
+        const nearRipple = Math.sin((x + y) * 0.04 + t * 1.18) * 0.15;
+        const banding = Math.sin(y * 0.12 + t * 0.62) * 0.08;
+        pos.setZ(i, farSwell + crossSwell + nearRipple + banding);
+      }
+
+      pos.needsUpdate = true;
+      ocean.geometry.computeVertexNormals();
+
+      shoreFoam.position.z = -2.9 + Math.sin(t * 0.9) * 0.14;
+      shoreFoam.position.x = Math.sin(t * 0.55) * 0.12;
+    }
+
+    function animateEnvironment(t) {
+      palmGroup.children.forEach((palm, i) => {
+        palm.rotation.z = Math.sin(t * 0.55 + i * 0.6) * 0.008;
+      });
+
+      hutGroup.children.forEach((hut, i) => {
+        hut.position.y = Math.sin(t * 0.35 + i * 0.8) * 0.01;
+      });
+
+      birdGroup.children.forEach((bird, i) => {
+        const d = bird.userData;
+        bird.position.x = d.baseX + Math.sin(t * d.speed + d.driftOffset + i * 0.2) * 0.9;
+        bird.position.y = d.baseY + Math.cos(t * (d.speed * 1.7) + d.driftOffset) * 0.25;
+        bird.position.z = d.baseZ + Math.sin(t * (d.speed * 0.8) + i) * 0.5;
+        bird.children[0].rotation.z = 0.18 + Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
+        bird.children[1].rotation.z = -0.18 - Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
+      });
+    }
+
+    function animateHero(t) {
+      coconut.position.y = 1.03 + Math.sin(t * 0.55) * 0.003;
+      coconut.rotation.x = -0.06 + Math.cos(t * 0.22) * 0.0015;
+      coconut.rotation.y = -0.18;
+      coconut.rotation.z = -0.08 + Math.sin(t * 0.28) * 0.0015;
+    }
+
+    function animateCamera(t) {
+      if (!orbitState) return;
+
+      if (!orbitState.isPointerDown && !isMobileViewport()) {
+        orbitState.yaw += 0.00035;
+        updateOrbitCamera();
+      }
+    }
+
+    function animateDayNight(t) {
+      const { hours24, minutes, dayNumber, phase } = getGameTimeData(t);
+      const daylight = THREE.MathUtils.clamp((Math.sin(phase) + 1) * 0.5, 0, 1);
+      const dusk = Math.max(0, 1 - Math.abs(daylight - 0.28) / 0.18);
+      const night = 1 - daylight;
+      const starVisibility = Math.max(0, (night - 0.25) / 0.75);
+
+      drawSkyGradient(scene.background, phase);
+
+      const fogColor = lerpColorHex('#d9bc97', '#253047', night * 0.9);
+      scene.fog.color.copy(fogColor);
+      scene.fog.density = 0.0115 + night * 0.004;
+
+      const hemiSky = lerpColorHex('#ffd9a8', '#5c6f9e', night * 0.9);
+      const hemiGround = lerpColorHex('#4d6f84', '#18202d', night * 0.95);
+      hemiLight.color.copy(hemiSky);
+      hemiLight.groundColor.copy(hemiGround);
+      hemiLight.intensity = 0.9 - night * 0.38;
+
+      ambientLight.color.copy(lerpColorHex('#fff1dc', '#8ea3d2', night * 0.45));
+      ambientLight.intensity = 0.22 + night * 0.05;
+
+      sunLight.color.copy(lerpColorHex('#ffc97a', '#8da6ff', night * 0.45));
+      sunLight.intensity = Math.max(0.12, 1.95 * daylight + dusk * 0.3);
+
+      const sunX = Math.cos(phase) * 34;
+      const sunY = Math.sin(phase) * 20 + 3;
+      sunLight.position.set(sunX, Math.max(1.5, sunY), 10);
+
+      sunMesh.position.set(Math.cos(phase) * 4, Math.sin(phase) * 11 + 2, -28);
+      sunMesh.scale.setScalar(0.9 + daylight * 0.18 + dusk * 0.08);
+      sunMesh.material.color.copy(lerpColorHex('#ffd38a', '#d9e6ff', night * 0.55));
+      sunMesh.material.opacity = Math.max(0.08, 0.98 * daylight + dusk * 0.2 - night * 0.2);
+
+      const moonPhase = phase + Math.PI;
+      moonMesh.position.set(Math.cos(moonPhase) * 6, Math.sin(moonPhase) * 10 + 4, -30);
+      moonMesh.material.opacity = starVisibility * 0.9;
+      moonMesh.scale.setScalar(0.95 + starVisibility * 0.08);
+
+      if (starField) {
+        starField.material.opacity = starVisibility * 0.95;
+        starField.rotation.y = t * 0.01;
+      }
+
+      if (beachMesh) {
+        beachMesh.material.color.copy(lerpColorHex('#ddc298', '#7e776c', night * 0.62));
+      }
+
+      if (ocean) {
+        ocean.material.color.copy(lerpColorHex('#4c7f90', '#24374d', night * 0.72));
+        ocean.material.opacity = 0.9 - night * 0.12 + Math.sin(t * 0.3) * 0.015;
+      }
+
+      if (shoreFoam) {
+        shoreFoam.material.opacity = (0.15 + Math.sin(t * 1.4) * 0.035) * (0.72 + daylight * 0.28);
+      }
+
+      if (el.temp) {
+        const temp = Math.round(22 + daylight * 7 + dusk * 1 - night * 2);
+        el.temp.textContent = `${temp}°C`;
+      }
+
+      if (el.gameDay) {
+        el.gameDay.textContent = `Day ${dayNumber}`;
+      }
+
+      if (el.gameTime) {
+        el.gameTime.textContent = formatGameClock(hours24, minutes);
+      }
+
+      const bloomEl = document.querySelector('.bloom');
+      const warmEl = document.querySelector('.warm-bottom');
+      if (bloomEl) bloomEl.style.opacity = String(0.1 + daylight * 0.55 + dusk * 0.22);
+      if (warmEl) warmEl.style.opacity = String(Math.max(0.08, 0.25 + dusk * 0.75 - night * 0.18));
+    }
+
     function bindEvents() {
-      el.ponder.addEventListener('click', handlePonder);
-      el.eventButton.addEventListener('click', () => resolveEvent(true));
-      el.prestigeButton.addEventListener('click', () => {
-        const reward = getPrestigeReward();
-        if (reward <= 0) return;
-        state.essence += reward;
-        state.points = 0;
-        state.totalEarned = 0;
-        state.combo = 0;
-        state.bestCombo = 0;
-        state.perfects = 0;
-        state.eventsResolved = 0;
-        state.spentOnUpgrades = 0;
-        state.crabBuffTimer = 0;
-        state.startTime = performance.now();
-        baseUpgradeDefs.forEach(def => { state.upgrades[def.id] = 0; });
-        recomputeStats();
-        seedQuests();
-        renderAllUI();
-        showThought(`Transcendence achieved. +${reward} Coconut Essence.`);
-        unlockAchievement('prestige', 'Shell Memory', 'You transcended the run.');
+      el.ponder.addEventListener('click', () => {
+        state.startTime -= 5000;
+        showThought();
+        unlockAchievement('ponder', 'First Ponder', 'You committed to the bit.');
+        el.ponder.blur();
       });
 
       window.addEventListener('resize', () => {
@@ -1830,10 +1433,12 @@ function animateCamera(t) {
 
         if (orbitState) {
           const mobile = isMobileViewport();
-          orbitState.distance = mobile ? Math.max(orbitState.distance, 7.4) : Math.min(orbitState.distance, 11.5);
+          orbitState.distance = mobile
+            ? Math.max(orbitState.distance, 7.4)
+            : Math.min(orbitState.distance, 11.5);
           orbitState.minDistance = mobile ? 4.8 : 2.8;
           orbitState.maxDistance = mobile ? 13.5 : 11.5;
-          orbitState.pitch = clamp(orbitState.pitch, orbitState.minPitch, orbitState.maxPitch);
+          orbitState.pitch = Math.max(orbitState.minPitch, Math.min(orbitState.maxPitch, orbitState.pitch));
         }
 
         updateOrbitCamera();
@@ -1848,45 +1453,63 @@ function animateCamera(t) {
       });
 
       renderer.domElement.addEventListener('pointermove', (event) => {
-        if (!orbitState || !orbitState.isPointerDown || orbitState.pointerId !== event.pointerId) return;
+        if (!orbitState || !orbitState.isPointerDown || orbitState.pointerId !== event.pointerId) {
+          return;
+        }
+
         const dx = event.clientX - orbitState.lastX;
         const dy = event.clientY - orbitState.lastY;
+
         orbitState.lastX = event.clientX;
         orbitState.lastY = event.clientY;
+
         orbitState.yaw -= dx * 0.0055;
         orbitState.pitch -= dy * 0.0038;
-        orbitState.pitch = clamp(orbitState.pitch, orbitState.minPitch, orbitState.maxPitch);
+        orbitState.pitch = Math.max(
+          orbitState.minPitch,
+          Math.min(orbitState.maxPitch, orbitState.pitch)
+        );
+
         updateOrbitCamera();
       });
 
       const endPointer = (event) => {
         if (!orbitState || orbitState.pointerId !== event.pointerId) return;
+
         orbitState.isPointerDown = false;
-        try { renderer.domElement.releasePointerCapture(event.pointerId); } catch (e) {}
+        try {
+          renderer.domElement.releasePointerCapture(event.pointerId);
+        } catch (e) {
+          // no-op
+        }
         orbitState.pointerId = null;
       };
 
       renderer.domElement.addEventListener('pointerup', endPointer);
       renderer.domElement.addEventListener('pointercancel', endPointer);
 
-      renderer.domElement.addEventListener('wheel', (event) => {
-        event.preventDefault();
-        orbitState.distance += event.deltaY * 0.004;
-        orbitState.distance = clamp(orbitState.distance, orbitState.minDistance, orbitState.maxDistance);
-        updateOrbitCamera();
-      }, { passive: false });
+      renderer.domElement.addEventListener(
+        'wheel',
+        (event) => {
+          event.preventDefault();
+          orbitState.distance += event.deltaY * 0.004;
+          orbitState.distance = Math.max(
+            orbitState.minDistance,
+            Math.min(orbitState.maxDistance, orbitState.distance)
+          );
+          updateOrbitCamera();
+        },
+        { passive: false }
+      );
     }
 
     function tick() {
       requestAnimationFrame(tick);
-      const now = performance.now();
-      const delta = Math.min(0.05, (now - state.lastFrameTime) / 1000);
-      state.lastFrameTime = now;
+
       const t = clock.getElapsedTime();
-      const ms = now - state.startTime;
+      const ms = performance.now() - state.startTime;
 
       updateHUD(ms);
-      updateGameSystems(delta, t, ms);
       animateOcean(t);
       animateEnvironment(t);
       animateHero(t);
@@ -1896,26 +1519,24 @@ function animateCamera(t) {
       renderer.render(scene, camera);
     }
 
-function boot() {
-  clock = new THREE.Clock();
-  initRenderer();
-  initScene();
-  initOrbitControls();
-  initLights();
-  initBeach();
-  initOcean();
-  initCoconut();
-  initBackground();
-  recomputeStats();
-  seedQuests();
-  bindEvents();
+    function boot() {
+      clock = new THREE.Clock();
 
-  state.activeThoughtIndex = 0;
-  state.lastFrameTime = performance.now();
-  showThought('The horizon remains unavailable.');
-  renderAllUI();
-  tick();
-}
+      initRenderer();
+      initScene();
+      initOrbitControls();
+      initLights();
+      initBeach();
+      initOcean();
+      initCoconut();
+      initBackground();
+      bindEvents();
+
+      state.activeThoughtIndex = 0;
+      showThought('The horizon remains unavailable.');
+
+      tick();
+    }
 
     boot();
   </script>
