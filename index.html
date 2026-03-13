@@ -10,7 +10,7 @@
   </script>
 
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Coconut Simulator</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='16'%3E🥥%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -34,6 +34,11 @@
       background: #95bdd8;
       color: var(--hud-text);
       font-family: Inter, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      overscroll-behavior: none;
     }
 
     #canvas-container,
@@ -97,6 +102,10 @@
       flex-direction: column;
       justify-content: space-between;
       padding: 14px;
+      padding-top: max(14px, env(safe-area-inset-top));
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
     }
 
     .interactive { pointer-events: auto; }
@@ -476,13 +485,19 @@
 
     @media (max-width: 640px) {
       .ui {
-        padding: 8px;
+        padding: 6px;
+        padding-top: max(6px, env(safe-area-inset-top));
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
+        padding-left: max(6px, env(safe-area-inset-left));
+        padding-right: max(6px, env(safe-area-inset-right));
+        gap: 4px;
       }
 
       .title-bar {
-        min-height: 64px;
-        padding: 10px 12px;
-        border-radius: 16px;
+        min-height: 56px;
+        padding: 8px 10px;
+        border-radius: 14px;
+        gap: 6px;
       }
 
       .title-left {
@@ -492,19 +507,23 @@
       .stats-panel {
         position: static;
         width: 100%;
-        margin-top: 8px;
-        border-radius: 12px;
+        margin-top: 4px;
+        border-radius: 10px;
+        padding: 8px 10px;
       }
 
       .middle-zone {
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        gap: 8px;
+        gap: 4px;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
       }
 
       .stats-line {
-        grid-template-columns: minmax(0, 1fr) minmax(96px, auto);
+        grid-template-columns: minmax(0, 1fr) minmax(80px, auto);
         font-size: 10px;
       }
 
@@ -514,6 +533,15 @@
         opacity: 1;
         max-width: 100%;
         margin-top: 0;
+        font-size: 11px;
+        padding: 5px 8px;
+        border-radius: 10px;
+      }
+
+      .thought.welcome {
+        bottom: auto;
+        font-size: 13px;
+        padding: 8px 12px;
       }
 
       .thought.show {
@@ -521,27 +549,62 @@
       }
 
       .bottom-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr auto;
+        gap: 6px;
+        align-items: end;
       }
 
       .bottom-left {
-        order: 2;
+        order: 3;
+        grid-column: 1 / -1;
+        max-width: none;
+        width: 100%;
+        font-size: 9px;
+        padding: 5px 7px;
       }
 
       .ponder-btn {
         order: 1;
-        height: 54px;
+        height: 48px;
+        min-width: 0;
+        flex: 1;
+        border-radius: 14px;
+        font-size: 13px;
       }
 
       .restart-btn {
         order: 2;
-        height: 44px;
+        height: 48px;
         min-width: 0;
+        border-radius: 14px;
       }
 
       .corner-mark {
-        order: 3;
+        display: none;
       }
+
+      .achievement {
+        right: 6px;
+        bottom: max(50px, calc(env(safe-area-inset-bottom) + 50px));
+        width: min(280px, calc(100vw - 12px));
+        padding: 8px 10px;
+      }
+
+      .points-box {
+        padding: 6px 10px;
+        border-radius: 10px;
+      }
+
+      .points-label {
+        font-size: 8px;
+        margin-bottom: 3px;
+      }
+    }
+
+    @media (max-height: 600px) and (max-width: 640px) {
+      .stats-panel { display: none; }
+      .bottom-left { display: none; }
+      .middle-zone { justify-content: center; }
     }
   </style>
 </head>
@@ -874,11 +937,12 @@
     }
 
     function initRenderer() {
-      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      const mobile = isMobileViewport();
+      renderer = new THREE.WebGLRenderer({ antialias: !mobile, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2));
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.type = mobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
       renderer.outputEncoding = THREE.sRGBEncoding;
       document.getElementById('canvas-container').appendChild(renderer.domElement);
       renderer.domElement.style.touchAction = 'none';
@@ -925,7 +989,8 @@
         isPointerDown: false,
         pointerId: null,
         lastX: 0,
-        lastY: 0
+        lastY: 0,
+        lastInteraction: 0
       };
 
       updateOrbitCamera();
@@ -940,7 +1005,8 @@
       sunLight.position.set(34, 18, 10);
       sunLight.castShadow = true;
       const sc = sunLight.shadow.camera;
-      sunLight.shadow.mapSize.set(2048, 2048);
+      const shdw = isMobileViewport() ? 1024 : 2048;
+      sunLight.shadow.mapSize.set(shdw, shdw);
       sc.left = sc.bottom = -70; sc.right = sc.top = 70; sc.far = 170;
       scene.add(sunLight);
 
@@ -966,7 +1032,8 @@
     }
 
     function initBeach() {
-      const W = 190, H = 126, SX = 300, SY = 200;
+      const mobile = isMobileViewport();
+      const W = 190, H = 126, SX = mobile ? 150 : 300, SY = mobile ? 100 : 200;
       const geo = new THREE.PlaneGeometry(W, H, SX, SY);
       const pos = geo.attributes.position;
       const colors = new Float32Array(pos.count * 3);
@@ -1066,7 +1133,7 @@
       wetSandMesh.receiveShadow = true;
       scene.add(wetSandMesh);
 
-      const spkCount = 600;
+      const spkCount = mobile ? 200 : 600;
       const spkGeo = new THREE.BufferGeometry();
       const spkPos = new Float32Array(spkCount * 3);
       const spkAlpha = new Float32Array(spkCount);
@@ -1084,7 +1151,7 @@
       }));
       scene.add(sandSparkles);
 
-      const rpCount = 26;
+      const rpCount = mobile ? 14 : 26;
       sandRipples = new THREE.Group();
       for (let i = 0; i < rpCount; i++) {
         const rw = 3 + Math.random() * 8;
@@ -1107,7 +1174,9 @@
     }
 
     function initOcean() {
-      ocean = new THREE.Mesh(new THREE.PlaneGeometry(520, 240, 230, 120), smat(0x4c7f90, 0.22, 0.08, {transparent:true, opacity:0.94}));
+      const mobile = isMobileViewport();
+      const osx = mobile ? 100 : 230, osy = mobile ? 50 : 120;
+      ocean = new THREE.Mesh(new THREE.PlaneGeometry(520, 240, osx, osy), smat(0x4c7f90, 0.22, 0.08, {transparent:true, opacity:0.94}));
       ocean.rotation.x = -PI / 2;
       ocean.position.set(0, -0.88, -22.5);
       scene.add(ocean);
@@ -1422,16 +1491,19 @@
     }
 
     function addFarEnvironmentRing() {
+      const mobile = isMobileViewport();
+      const count = mobile ? 14 : 22;
       const fp = new THREE.Group();
-      for (let i = 0; i < 22; i++) {
-        const a = (i / 22) * PI2, r = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * PI2, r = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
         fp.add(createSimplePalm(Math.cos(a)*r, Math.sin(a)*r, 10+Math.random()*8, 0.12+Math.random()*0.16));
       }
       scene.add(fp);
 
+      const moundCount = mobile ? 10 : 18;
       const mm = smat(0x35503a);
-      for (let i = 0; i < 18; i++) {
-        const a = (i / 18) * PI2 + 0.08, r = 84 + Math.random() * 18;
+      for (let i = 0; i < moundCount; i++) {
+        const a = (i / moundCount) * PI2 + 0.08, r = 84 + Math.random() * 18;
         const m = new THREE.Mesh(new THREE.SphereGeometry(4 + Math.random() * 5, 10, 10), mm);
         m.scale.y = 0.4 + Math.random() * 0.25;
         m.position.set(Math.cos(a) * r, 0.6, Math.sin(a) * r);
@@ -1484,11 +1556,13 @@
 
     function initClouds() {
       cloudGroup = new THREE.Group();
+      const mobile = isMobileViewport();
       const cm = smat(0xffffff, 1, 0, {transparent:true, opacity:0.65, depthWrite:false});
       function mkCloud(x, y, z, s) {
         const c = new THREE.Group();
-        for (let i = 0, n = 5 + Math.floor(Math.random() * 6); i < n; i++) {
-          const p = new THREE.Mesh(new THREE.SphereGeometry(1.8 + Math.random() * 2.2, 12, 12), cm);
+        const puffs = mobile ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 6);
+        for (let i = 0; i < puffs; i++) {
+          const p = new THREE.Mesh(new THREE.SphereGeometry(1.8 + Math.random() * 2.2, mobile ? 6 : 12, mobile ? 6 : 12), cm);
           p.position.set((Math.random()-0.5)*6, (Math.random()-0.3)*1.8, (Math.random()-0.5)*3);
           p.scale.y = 0.45 + Math.random() * 0.25;
           c.add(p);
@@ -1497,15 +1571,18 @@
         c.userData = {baseX: x, speed: 0.15+Math.random()*0.25, range: 60+Math.random()*40};
         return c;
       }
-      [[-45,22,-55,1.8],[-15,26,-65,2.2],[25,20,-50,1.5],[55,28,-70,2],[-70,24,-60,1.6],[80,22,-55,1.4],
+      const cloudData = [[-45,22,-55,1.8],[-15,26,-65,2.2],[25,20,-50,1.5],[55,28,-70,2],[-70,24,-60,1.6],[80,22,-55,1.4],
        [0,30,-80,2.5],[-30,18,-45,1.2],[40,25,-75,1.9],[-55,32,-85,2.1],[65,19,-42,1.3],[10,27,-72,1.7]
-      ].forEach(a => cloudGroup.add(mkCloud(...a)));
+      ];
+      (mobile ? cloudData.slice(0, 7) : cloudData).forEach(a => cloudGroup.add(mkCloud(...a)));
       scene.add(cloudGroup);
     }
 
     function initBeachDetails() {
+      const mobile = isMobileViewport();
       const sm1 = smat(0xf0e0c8, 0.6, 0.05), sm2 = smat(0xe8c8a0, 0.7, 0.02);
-      for (let i = 0; i < 18; i++) {
+      const shellCount = mobile ? 10 : 18;
+      for (let i = 0; i < shellCount; i++) {
         const sh = new THREE.Mesh(new THREE.SphereGeometry(0.08+Math.random()*0.12, 8, 6), Math.random()>0.5?sm1:sm2);
         sh.scale.set(1, 0.3+Math.random()*0.3, 1.2+Math.random()*0.5);
         sh.position.set((Math.random()-0.5)*50, 0.02+Math.random()*0.04, -1+Math.random()*6);
@@ -1531,7 +1608,8 @@
       }
 
       const dwm = smat(0x8a7560);
-      for (let i = 0; i < 6; i++) {
+      const dwCount = mobile ? 3 : 6;
+      for (let i = 0; i < dwCount; i++) {
         const dw = new THREE.Mesh(new THREE.CylinderGeometry(0.04+Math.random()*0.06, 0.03+Math.random()*0.05, 0.6+Math.random()*1.2, 6), dwm);
         dw.position.set((Math.random()-0.5)*44, 0.04, -2+Math.random()*7);
         dw.rotation.z = PI/2+(Math.random()-0.5)*0.4; dw.rotation.y = Math.random()*PI;
@@ -1539,7 +1617,8 @@
       }
 
       const pm = smat(0x9a8a78, 0.9);
-      for (let i = 0; i < 30; i++) {
+      const pebbleCount = mobile ? 15 : 30;
+      for (let i = 0; i < pebbleCount; i++) {
         const p = new THREE.Mesh(new THREE.SphereGeometry(0.03+Math.random()*0.06, 6, 6), pm);
         p.scale.y = 0.3+Math.random()*0.3;
         p.position.set((Math.random()-0.5)*55, 0.01, -3+Math.random()*4);
@@ -1561,7 +1640,8 @@
 
     function initFireflies() {
       fireflyGroup = new THREE.Group();
-      for (let i = 0; i < 40; i++) {
+      const ffCount = isMobileViewport() ? 20 : 40;
+      for (let i = 0; i < ffCount; i++) {
         const ff = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), bmat(0xffee88, {transparent:true, opacity:0, depthWrite:false}));
         ff.position.set((Math.random()-0.5)*30, 0.5+Math.random()*3.5, (Math.random()-0.5)*20);
         ff.userData = {
@@ -1577,7 +1657,8 @@
     function initWaveSpray() {
       waveSprayGroup = new THREE.Group();
       const spm = bmat(0xffffff, {transparent:true, opacity:0.3, depthWrite:false});
-      for (let i = 0; i < 24; i++) {
+      const sprayCount = isMobileViewport() ? 12 : 24;
+      for (let i = 0; i < sprayCount; i++) {
         const sp = new THREE.Mesh(new THREE.SphereGeometry(0.02+Math.random()*0.04, 4, 4), spm.clone());
         sp.position.set((Math.random()-0.5)*40, 0.05, -3+Math.random()*0.8);
         sp.userData = {baseX:sp.position.x, baseZ:sp.position.z, phase:Math.random()*PI2, speed:0.8+Math.random()*0.5};
@@ -1595,11 +1676,13 @@
 
     function initVegetation() {
       vegetationGroup = new THREE.Group();
+      const mobile = isMobileViewport();
       const gm = smat(0x4a7a3a, 1, 0, {side:THREE.DoubleSide});
       const dgm = smat(0x3a6228, 1, 0, {side:THREE.DoubleSide});
-      for (let i = 0; i < 60; i++) {
+      const vegCount = mobile ? 30 : 60;
+      for (let i = 0; i < vegCount; i++) {
         const tuft = new THREE.Group();
-        for (let b = 0, n = 4+Math.floor(Math.random()*5); b < n; b++) {
+        for (let b = 0, n = (mobile ? 3 : 4)+Math.floor(Math.random()*(mobile ? 3 : 5)); b < n; b++) {
           const bl = new THREE.Mesh(new THREE.PlaneGeometry(0.06+Math.random()*0.04, 0.3+Math.random()*0.4), Math.random()>0.4?gm:dgm);
           bl.position.set((Math.random()-0.5)*0.15, 0.15+Math.random()*0.1, (Math.random()-0.5)*0.15);
           bl.rotation.y = Math.random()*PI; bl.rotation.x = (Math.random()-0.5)*0.5;
@@ -1612,7 +1695,8 @@
       }
 
       const fc = [0xff6b8a, 0xffb347, 0xff69b4, 0xff7043, 0xffee58];
-      for (let i = 0; i < 12; i++) {
+      const flowerCount = mobile ? 6 : 12;
+      for (let i = 0; i < flowerCount; i++) {
         const c1 = fc[Math.floor(Math.random()*fc.length)], c2 = fc[Math.floor(Math.random()*fc.length)];
         const fl = new THREE.Mesh(new THREE.SphereGeometry(0.04+Math.random()*0.03, 6, 6), smat(c1, 0.7, 0, {emissive:c2, emissiveIntensity:0.1}));
         fl.position.set((Math.random()-0.5)*50, 0.15+Math.random()*0.15, 6+Math.random()*10);
@@ -1734,9 +1818,14 @@
     function animateCamera(t) {
       if (!orbitState) return;
 
-      if (!orbitState.isPointerDown && !isMobileViewport()) {
-        orbitState.yaw += 0.00035;
-        updateOrbitCamera();
+      if (!orbitState.isPointerDown) {
+        const mobile = isMobileViewport();
+        const idle = mobile ? (performance.now() - (orbitState.lastInteraction || 0) > 3000) : true;
+        if (idle) {
+          const speed = mobile ? 0.00015 : 0.00035;
+          orbitState.yaw += speed;
+          updateOrbitCamera();
+        }
       }
     }
 
@@ -1876,13 +1965,13 @@
       });
 
       window.addEventListener('resize', () => {
+        const mobile = isMobileViewport();
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2));
 
         if (orbitState) {
-          const mobile = isMobileViewport();
           orbitState.distance = mobile
             ? Math.max(orbitState.distance, 7.4)
             : Math.min(orbitState.distance, 11.5);
@@ -1894,7 +1983,46 @@
         updateOrbitCamera();
       });
 
+      let pinchStartDist = 0;
+      let pinchStartZoom = 0;
+      let touchCount = 0;
+
+      renderer.domElement.addEventListener('touchstart', (e) => {
+        orbitState.lastInteraction = performance.now();
+        if (e.touches.length === 2) {
+          e.preventDefault();
+          touchCount = 2;
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          pinchStartDist = Math.hypot(dx, dy);
+          pinchStartZoom = orbitState.distance;
+        } else if (e.touches.length === 1) {
+          touchCount = 1;
+        }
+      }, { passive: false });
+
+      renderer.domElement.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && touchCount === 2) {
+          e.preventDefault();
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
+          const scale = pinchStartDist / Math.max(dist, 1);
+          orbitState.distance = Math.max(
+            orbitState.minDistance,
+            Math.min(orbitState.maxDistance, pinchStartZoom * scale)
+          );
+          updateOrbitCamera();
+        }
+      }, { passive: false });
+
+      renderer.domElement.addEventListener('touchend', () => {
+        touchCount = Math.max(0, touchCount - 1);
+      });
+
       renderer.domElement.addEventListener('pointerdown', (event) => {
+        orbitState.lastInteraction = performance.now();
+        if (touchCount >= 2) return;
         orbitState.isPointerDown = true;
         orbitState.pointerId = event.pointerId;
         orbitState.lastX = event.clientX;
@@ -1906,6 +2034,7 @@
         if (!orbitState || !orbitState.isPointerDown || orbitState.pointerId !== event.pointerId) {
           return;
         }
+        if (touchCount >= 2) return;
 
         const dx = event.clientX - orbitState.lastX;
         const dy = event.clientY - orbitState.lastY;
@@ -1913,8 +2042,10 @@
         orbitState.lastX = event.clientX;
         orbitState.lastY = event.clientY;
 
-        orbitState.yaw -= dx * 0.0055;
-        orbitState.pitch -= dy * 0.0038;
+        const sens = isMobileViewport() ? 0.0075 : 0.0055;
+        const pitchSens = isMobileViewport() ? 0.005 : 0.0038;
+        orbitState.yaw -= dx * sens;
+        orbitState.pitch -= dy * pitchSens;
         orbitState.pitch = Math.max(
           orbitState.minPitch,
           Math.min(orbitState.maxPitch, orbitState.pitch)
