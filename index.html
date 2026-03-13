@@ -239,9 +239,26 @@
       text-shadow: 0 1px 3px rgba(0,0,0,0.22);
     }
 
+    .thought.welcome {
+      bottom: 120px;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 600;
+      font-style: normal;
+      background: linear-gradient(135deg, rgba(255,204,125,0.25), rgba(255,236,198,0.15));
+      border: 1px solid rgba(255,204,125,0.3);
+      box-shadow: 0 8px 24px rgba(255,204,125,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+      animation: welcomeGlow 2s ease-in-out infinite alternate;
+    }
+
     .thought.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes welcomeGlow {
+      0% { box-shadow: 0 8px 24px rgba(255,204,125,0.2), inset 0 1px 0 rgba(255,255,255,0.1); }
+      100% { box-shadow: 0 12px 32px rgba(255,204,125,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
     }
 
     .bottom-row {
@@ -466,6 +483,12 @@
         max-width: calc(100vw - 20px);
         font-size: 12px;
         padding: 7px 10px;
+      }
+
+      .thought.welcome {
+        bottom: 85px;
+        padding: 10px 14px;
+        font-size: 14px;
       }
 
       .bottom-row {
@@ -822,15 +845,17 @@
       return state.thoughts[nextIndex];
     }
 
-    function showThought(text) {
+    function showThought(text, type = 'normal') {
       el.thought.textContent = text || nextThought();
+      el.thought.className = `thought ${type}`;
       el.thought.classList.add('show');
 
       clearTimeout(showThought._hideTimer);
       clearTimeout(showThought._cooldownTimer);
 
-      showThought._hideTimer = setTimeout(() => el.thought.classList.remove('show'), 3200);
-      showThought._cooldownTimer = setTimeout(() => { state.shownThought = false; }, 5000);
+      const duration = type === 'welcome' ? 6000 : 3200; // Welcome messages stay longer
+      showThought._hideTimer = setTimeout(() => el.thought.classList.remove('show'), duration);
+      showThought._cooldownTimer = setTimeout(() => { state.shownThought = false; }, duration + 2000);
 
       state.shownThought = true;
     }
@@ -1682,9 +1707,9 @@
 
       state.activeThoughtIndex = 0;
       if (state.loadedFromCookie) {
-        showThought(`Welcome back, ${state.username}! Your coconut awaits.`);
+        showThought(`🌴 Welcome back, ${state.username}! 🥥\nYour premium coconut observation continues...`, 'welcome');
         // Show the default thought after the welcome back
-        setTimeout(() => showThought('The horizon remains unavailable.'), 4000);
+        setTimeout(() => showThought('The horizon remains unavailable.'), 7000);
       } else {
         showThought('The horizon remains unavailable.');
       }
