@@ -1670,10 +1670,6 @@
 
       loadProgress();
 
-      if (state.loadedFromCookie) {
-        showThought(`Welcome back, ${state.username}! Your coconut awaits.`);
-      }
-
       initRenderer();
       initScene();
       initOrbitControls();
@@ -1685,7 +1681,13 @@
       bindEvents();
 
       state.activeThoughtIndex = 0;
-      showThought('The horizon remains unavailable.');
+      if (state.loadedFromCookie) {
+        showThought(`Welcome back, ${state.username}! Your coconut awaits.`);
+        // Show the default thought after the welcome back
+        setTimeout(() => showThought('The horizon remains unavailable.'), 4000);
+      } else {
+        showThought('The horizon remains unavailable.');
+      }
 
       tick();
     }
