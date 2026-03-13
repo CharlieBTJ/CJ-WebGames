@@ -278,94 +278,53 @@
       font-size: 10.5px;
     }
 
-    .ponder-btn {
+    .ponder-btn, .restart-btn {
       pointer-events: auto;
       position: relative;
-      min-width: 224px;
-      height: 68px;
-      padding: 0 24px;
       border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 20px;
-      background: linear-gradient(180deg, rgba(36,48,58,0.92), rgba(22,28,34,0.94));
       color: #ffffff;
-      font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.10),
-        0 18px 38px rgba(0,0,0,0.34),
-        0 0 0 1px rgba(0,0,0,0.18),
-        0 10px 26px rgba(0,0,0,0.22);
       backdrop-filter: blur(10px) saturate(120%);
       -webkit-backdrop-filter: blur(10px) saturate(120%);
       transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, filter 0.16s ease;
       overflow: hidden;
       isolation: isolate;
+    }
+
+    .ponder-btn {
+      min-width: 224px; height: 68px; padding: 0 24px; border-radius: 20px; font-size: 15px;
+      background: linear-gradient(180deg, rgba(36,48,58,0.92), rgba(22,28,34,0.94));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 18px 38px rgba(0,0,0,0.34), 0 0 0 1px rgba(0,0,0,0.18), 0 10px 26px rgba(0,0,0,0.22);
     }
 
     .restart-btn {
-      pointer-events: auto;
-      position: relative;
-      min-width: 140px;
-      height: 48px;
-      padding: 0 16px;
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 16px;
+      min-width: 140px; height: 48px; padding: 0 16px; border-radius: 16px; font-size: 12px;
       background: linear-gradient(180deg, rgba(58,36,36,0.92), rgba(34,22,22,0.94));
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.10),
-        0 14px 28px rgba(0,0,0,0.34),
-        0 0 0 1px rgba(0,0,0,0.18),
-        0 8px 18px rgba(0,0,0,0.22);
-      backdrop-filter: blur(10px) saturate(120%);
-      -webkit-backdrop-filter: blur(10px) saturate(120%);
-      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, filter 0.16s ease;
-      overflow: hidden;
-      isolation: isolate;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 14px 28px rgba(0,0,0,0.34), 0 0 0 1px rgba(0,0,0,0.18), 0 8px 18px rgba(0,0,0,0.22);
     }
 
     .ponder-btn:hover {
-      transform: translateY(-3px) scale(1.015);
-      border-color: rgba(210,240,255,0.30);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.12),
-        0 22px 44px rgba(0,0,0,0.38),
-        0 0 0 1px rgba(130,200,240,0.18),
-        0 0 30px rgba(90,170,220,0.18);
-      filter: brightness(1.05);
+      transform: translateY(-3px) scale(1.015); border-color: rgba(210,240,255,0.30); filter: brightness(1.05);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 22px 44px rgba(0,0,0,0.38), 0 0 0 1px rgba(130,200,240,0.18), 0 0 30px rgba(90,170,220,0.18);
     }
 
     .restart-btn:hover {
-      transform: translateY(-2px) scale(1.01);
-      border-color: rgba(255,210,210,0.30);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.12),
-        0 18px 36px rgba(0,0,0,0.38),
-        0 0 0 1px rgba(240,130,130,0.18),
-        0 0 24px rgba(220,90,90,0.18);
-      filter: brightness(1.05);
+      transform: translateY(-2px) scale(1.01); border-color: rgba(255,210,210,0.30); filter: brightness(1.05);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 18px 36px rgba(0,0,0,0.38), 0 0 0 1px rgba(240,130,130,0.18), 0 0 24px rgba(220,90,90,0.18);
+    }
+
+    .ponder-btn:active, .restart-btn:active {
+      transform: translateY(1px) scale(0.995);
     }
 
     .ponder-btn:active {
-      transform: translateY(1px) scale(0.995);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.10),
-        0 10px 18px rgba(0,0,0,0.24),
-        0 0 18px rgba(90,170,220,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 18px rgba(0,0,0,0.24), 0 0 18px rgba(90,170,220,0.12);
     }
 
     .restart-btn:active {
-      transform: translateY(1px) scale(0.995);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.10),
-        0 8px 14px rgba(0,0,0,0.24),
-        0 0 14px rgba(220,90,90,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 14px rgba(0,0,0,0.24), 0 0 14px rgba(220,90,90,0.12);
     }
 
     .corner-mark {
@@ -679,19 +638,18 @@
   </div>
 
   <script>
+    const $ = id => document.getElementById(id);
     const el = {
-      timer: document.getElementById('timer-display'),
-      points: document.getElementById('points-display'),
-      temp: document.getElementById('temp-display'),
-      thought: document.getElementById('thought'),
-      ponder: document.getElementById('ponder-button'),
-      achievement: document.getElementById('achievement'),
-      achievementName: document.getElementById('achievement-name'),
-      achievementDesc: document.getElementById('achievement-desc'),
-      gameDay: document.getElementById('game-day-display'),
-      gameTime: document.getElementById('game-time-display'),
-      restart: document.getElementById('restart-button')
+      timer: $('timer-display'), points: $('points-display'), temp: $('temp-display'),
+      thought: $('thought'), ponder: $('ponder-button'), achievement: $('achievement'),
+      achievementName: $('achievement-name'), achievementDesc: $('achievement-desc'),
+      gameDay: $('game-day-display'), gameTime: $('game-time-display'), restart: $('restart-button')
     };
+
+    const PI = Math.PI, PI2 = PI * 2;
+    function smat(c, r, m, o) { return new THREE.MeshStandardMaterial(Object.assign({color:c, roughness:r??1, metalness:m??0}, o||{})); }
+    function bmat(c, o) { return new THREE.MeshBasicMaterial(Object.assign({color:c}, o||{})); }
+    function rndSph() { const t=Math.random()*PI2, v=Math.random()*2-1, r=Math.sqrt(1-v*v); return [Math.cos(t)*r, v, Math.sin(t)*r]; }
 
     const state = {
       startTime: performance.now(),
@@ -866,7 +824,7 @@
       clearTimeout(showThought._hideTimer);
       clearTimeout(showThought._cooldownTimer);
 
-      const duration = type === 'welcome' ? 6000 : 3200; // Welcome messages stay longer
+      const duration = type === 'welcome' ? 6000 : 3200;
       showThought._hideTimer = setTimeout(() => el.thought.classList.remove('show'), duration);
       showThought._cooldownTimer = setTimeout(() => { state.shownThought = false; }, duration + 2000);
 
@@ -975,541 +933,236 @@
     function initLights() {
       hemiLight = new THREE.HemisphereLight(0xffd9a8, 0x4d6f84, 0.9);
       ambientLight = new THREE.AmbientLight(0xfff1dc, 0.22);
-      scene.add(hemiLight);
-      scene.add(ambientLight);
+      scene.add(hemiLight, ambientLight);
 
       sunLight = new THREE.DirectionalLight(0xffc97a, 1.95);
       sunLight.position.set(34, 18, 10);
       sunLight.castShadow = true;
-      sunLight.shadow.mapSize.width = 2048;
-      sunLight.shadow.mapSize.height = 2048;
-      sunLight.shadow.camera.left = -70;
-      sunLight.shadow.camera.right = 70;
-      sunLight.shadow.camera.top = 70;
-      sunLight.shadow.camera.bottom = -70;
-      sunLight.shadow.camera.far = 170;
+      const sc = sunLight.shadow.camera;
+      sunLight.shadow.mapSize.set(2048, 2048);
+      sc.left = sc.bottom = -70; sc.right = sc.top = 70; sc.far = 170;
       scene.add(sunLight);
 
-      sunMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(5.4, 32, 32),
-        new THREE.MeshBasicMaterial({ color: 0xffd38a, fog: false, transparent: true, opacity: 0.98 })
-      );
+      sunMesh = new THREE.Mesh(new THREE.SphereGeometry(5.4, 32, 32), bmat(0xffd38a, {fog:false, transparent:true, opacity:0.98}));
       sunMesh.position.set(0, 9.4, -28);
       scene.add(sunMesh);
 
-      moonMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(3.2, 24, 24),
-        new THREE.MeshBasicMaterial({ color: 0xdfe8ff, fog: false, transparent: true, opacity: 0 })
-      );
+      moonMesh = new THREE.Mesh(new THREE.SphereGeometry(3.2, 24, 24), bmat(0xdfe8ff, {fog:false, transparent:true, opacity:0}));
       moonMesh.position.set(-10, 6, -30);
       scene.add(moonMesh);
 
-      const starGeometry = new THREE.BufferGeometry();
-      const starCount = 280;
-      const positions = new Float32Array(starCount * 3);
-
-      for (let i = 0; i < starCount; i++) {
-        const radius = 140 + Math.random() * 40;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.random() * Math.PI * 0.45;
-
-        positions[i * 3] = Math.cos(theta) * Math.cos(phi) * radius;
-        positions[i * 3 + 1] = Math.abs(Math.sin(phi)) * radius * 0.9 + 18;
-        positions[i * 3 + 2] = -Math.sin(theta) * Math.cos(phi) * radius;
+      const starGeo = new THREE.BufferGeometry();
+      const starPos = new Float32Array(280 * 3);
+      for (let i = 0; i < 280; i++) {
+        const r = 140 + Math.random() * 40, t = Math.random() * PI2, p = Math.random() * PI * 0.45;
+        starPos[i*3] = Math.cos(t)*Math.cos(p)*r;
+        starPos[i*3+1] = Math.abs(Math.sin(p))*r*0.9+18;
+        starPos[i*3+2] = -Math.sin(t)*Math.cos(p)*r;
       }
-
-      starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-      const starMaterial = new THREE.PointsMaterial({
-        color: 0xe9f1ff,
-        size: 1.1,
-        transparent: true,
-        opacity: 0,
-        depthWrite: false,
-        fog: false,
-        sizeAttenuation: true
-      });
-
-      starField = new THREE.Points(starGeometry, starMaterial);
+      starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+      starField = new THREE.Points(starGeo, new THREE.PointsMaterial({color:0xe9f1ff, size:1.1, transparent:true, opacity:0, depthWrite:false, fog:false, sizeAttenuation:true}));
       scene.add(starField);
     }
 
     function initBeach() {
-      const geometry = new THREE.PlaneGeometry(190, 126, 260, 170);
-      const pos = geometry.attributes.position;
-
+      const geo = new THREE.PlaneGeometry(190, 126, 260, 170);
+      const pos = geo.attributes.position;
       for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const y = pos.getY(i);
+        const x = pos.getX(i), y = pos.getY(i);
         let z = Math.sin(x * 0.08) * 0.08 + Math.cos(y * 0.06) * 0.07;
         const nest = Math.hypot(x, y + 6);
         if (nest < 2.1) z -= (2.1 - nest) * 0.06;
-        const shoreBlend = THREE.MathUtils.smoothstep(y, -18, -5);
-        z -= shoreBlend * 0.62;
+        z -= THREE.MathUtils.smoothstep(y, -18, -5) * 0.62;
         pos.setZ(i, z);
       }
-
-      geometry.computeVertexNormals();
-
-      const material = new THREE.MeshStandardMaterial({
-        color: 0xddc298,
-        roughness: 1,
-        metalness: 0
-      });
-
-      beachMesh = new THREE.Mesh(geometry, material);
-      beachMesh.rotation.x = -Math.PI / 2;
+      geo.computeVertexNormals();
+      beachMesh = new THREE.Mesh(geo, smat(0xddc298));
+      beachMesh.rotation.x = -PI / 2;
       beachMesh.receiveShadow = true;
       scene.add(beachMesh);
     }
 
     function initOcean() {
-      const geometry = new THREE.PlaneGeometry(520, 240, 230, 120);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0x4c7f90,
-        roughness: 0.22,
-        metalness: 0.08,
-        transparent: true,
-        opacity: 0.94
-      });
-
-      ocean = new THREE.Mesh(geometry, material);
-      ocean.rotation.x = -Math.PI / 2;
+      ocean = new THREE.Mesh(new THREE.PlaneGeometry(520, 240, 230, 120), smat(0x4c7f90, 0.22, 0.08, {transparent:true, opacity:0.94}));
+      ocean.rotation.x = -PI / 2;
       ocean.position.set(0, -0.88, -22.5);
       scene.add(ocean);
 
-      // Ocean specular highlight plane
-      const specularMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.06,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-      });
-      const specular = new THREE.Mesh(
-        new THREE.PlaneGeometry(40, 60, 1, 1),
-        specularMat
-      );
-      specular.rotation.x = -Math.PI / 2;
-      specular.position.set(0, -0.82, -22);
-      specular.userData = { isOceanSpecular: true };
-      scene.add(specular);
+      const spec = new THREE.Mesh(new THREE.PlaneGeometry(40, 60, 1, 1), bmat(0xffffff, {transparent:true, opacity:0.06, depthWrite:false, blending:THREE.AdditiveBlending}));
+      spec.rotation.x = -PI / 2; spec.position.set(0, -0.82, -22);
+      spec.userData = {isOceanSpecular: true};
+      scene.add(spec);
 
-      shoreFoam = new THREE.Mesh(
-        new THREE.PlaneGeometry(180, 8, 80, 1),
-        new THREE.MeshBasicMaterial({ color: 0xfff4df, transparent: true, opacity: 0.18 })
-      );
-      shoreFoam.rotation.x = -Math.PI / 2;
-      shoreFoam.position.set(0, -0.1, -2.9);
+      shoreFoam = new THREE.Mesh(new THREE.PlaneGeometry(180, 8, 80, 1), bmat(0xfff4df, {transparent:true, opacity:0.18}));
+      shoreFoam.rotation.x = -PI / 2; shoreFoam.position.set(0, -0.1, -2.9);
       scene.add(shoreFoam);
     }
 
     function initCoconut() {
       coconut = new THREE.Group();
-
-      // Higher detail geometry for HD look
       const bodyGeo = new THREE.IcosahedronGeometry(1.0, 8);
       const pos = bodyGeo.attributes.position;
 
-      // More sophisticated deformation for realistic coconut shape
       for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const y = pos.getY(i);
-        const z = pos.getZ(i);
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
         const angle = Math.atan2(z, x);
-        const radialNoise = Math.sin(angle * 4.0) * 0.025 + Math.cos(y * 7.0) * 0.018;
-        const frontBulge = z > 0 ? z * 0.06 : z * 0.015;
-        const sideFullness = 1.0 + Math.cos(angle * 2.5) * 0.04;
-        const verticalVariation = Math.sin(y * 8.0) * 0.012;
-
-        pos.setXYZ(
-          i,
-          x * (0.85 + radialNoise) * sideFullness,
-          y * (1.05 + Math.sin(angle * 2.5) * 0.02 + verticalVariation),
-          z * (0.82 + frontBulge + radialNoise * 0.7)
+        const rn = Math.sin(angle * 4.0) * 0.025 + Math.cos(y * 7.0) * 0.018;
+        const fb = z > 0 ? z * 0.06 : z * 0.015;
+        pos.setXYZ(i,
+          x * (0.85 + rn) * (1.0 + Math.cos(angle * 2.5) * 0.04),
+          y * (1.05 + Math.sin(angle * 2.5) * 0.02 + Math.sin(y * 8.0) * 0.012),
+          z * (0.82 + fb + rn * 0.7)
         );
       }
-
       bodyGeo.computeVertexNormals();
 
-      // More realistic coconut material with enhanced subsurface scattering
-      const bodyMat = new THREE.MeshStandardMaterial({
-        color: 0x3a2418,
-        roughness: 0.78,
-        metalness: 0.025,
-        flatShading: false,
-        emissive: 0x1a0f08,
-        emissiveIntensity: 0.05,
-        transparent: false
-      });
-
+      const bodyMat = smat(0x3a2418, 0.78, 0.025, {emissive: 0x1a0f08, emissiveIntensity: 0.05});
       const body = new THREE.Mesh(bodyGeo, bodyMat);
-      body.castShadow = true;
-      body.receiveShadow = true;
+      body.castShadow = true; body.receiveShadow = true;
       coconut.add(body);
 
-      // Specular highlight shell (gives a nice wet/polished look)
-      const sheenGeo = bodyGeo.clone();
-      const sheenMat = new THREE.MeshStandardMaterial({
-        color: 0x5a3a22,
-        roughness: 0.35,
-        metalness: 0.12,
-        transparent: true,
-        opacity: 0.15,
-        depthWrite: false
-      });
-      const sheen = new THREE.Mesh(sheenGeo, sheenMat);
+      const sheen = new THREE.Mesh(bodyGeo.clone(), smat(0x5a3a22, 0.35, 0.12, {transparent:true, opacity:0.15, depthWrite:false}));
       sheen.scale.setScalar(1.005);
       coconut.add(sheen);
 
-      // Enhanced fiber system - more fibers, varied lengths and thicknesses
-      const fiberMat = new THREE.MeshStandardMaterial({
-        color: 0x6b4a2a,
-        roughness: 1.0,
-        metalness: 0,
-        transparent: true,
-        opacity: 0.35
-      });
-
-      // More varied and natural fiber distribution
+      const fiberMat = smat(0x6b4a2a, 1, 0, {transparent:true, opacity:0.35});
       for (let i = 0; i < 420; i++) {
         const strandLen = 0.035 + Math.random() * 0.14;
         const thickness = 0.001 + Math.random() * 0.003;
-        const strand = new THREE.Mesh(
-          new THREE.CylinderGeometry(thickness, thickness * 1.8, strandLen, 6),
-          fiberMat
-        );
-
-        // Create more natural clustering
-        const clusterX = (Math.random() - 0.5) * 0.3;
-        const clusterZ = (Math.random() - 0.5) * 0.3;
-
-        const theta = Math.random() * Math.PI * 2;
-        const v = Math.random() * 2 - 1;
-        const r = Math.sqrt(1 - v * v);
-        const nx = Math.cos(theta) * r * 0.8 + clusterX;
-        const ny = v * 0.9;
-        const nz = Math.sin(theta) * r * 0.8 + clusterZ;
-
-        // Normalize to stay on surface
-        const dist = Math.sqrt(nx * nx + ny * ny + nz * nz);
-        const normalizedX = nx / dist;
-        const normalizedY = ny / dist;
-        const normalizedZ = nz / dist;
-
-        strand.position.set(normalizedX * 0.89, normalizedY * 0.89, normalizedZ * 0.89);
-        strand.lookAt(normalizedX * 1.4, normalizedY * 1.4, normalizedZ * 1.4);
-        strand.rotateX(Math.PI / 2);
+        const strand = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness * 1.8, strandLen, 6), fiberMat);
+        const cx = (Math.random() - 0.5) * 0.3, cz = (Math.random() - 0.5) * 0.3;
+        const [sx, sy, sz] = rndSph();
+        const nx = sx * 0.8 + cx, ny = sy * 0.9, nz = sz * 0.8 + cz;
+        const d = Math.sqrt(nx*nx + ny*ny + nz*nz);
+        const nnx = nx/d, nny = ny/d, nnz = nz/d;
+        strand.position.set(nnx * 0.89, nny * 0.89, nnz * 0.89);
+        strand.lookAt(nnx * 1.4, nny * 1.4, nnz * 1.4);
+        strand.rotateX(PI / 2);
         strand.rotation.z += (Math.random() - 0.5) * 3.0;
-
-        // Add some curl to make fibers more natural
         strand.rotation.x += (Math.random() - 0.5) * 0.5;
         coconut.add(strand);
       }
 
-      // More detailed ridges
-      const ridgeMat = new THREE.MeshStandardMaterial({
-        color: 0x3a1f10,
-        roughness: 1,
-        metalness: 0,
-        transparent: true,
-        opacity: 0.4
-      });
-
+      const ridgeMat = smat(0x3a1f10, 1, 0, {transparent:true, opacity:0.4});
       for (let i = 0; i < 7; i++) {
-        const ridge = new THREE.Mesh(
-          new THREE.TorusGeometry(0.56 + i * 0.028, 0.012, 12, 120, Math.PI * 1.8),
-          ridgeMat
-        );
-        ridge.rotation.x = Math.PI / 2;
+        const ridge = new THREE.Mesh(new THREE.TorusGeometry(0.56 + i * 0.028, 0.012, 12, 120, PI * 1.8), ridgeMat);
+        ridge.rotation.x = PI / 2;
         ridge.rotation.z = i * 0.18 + 0.12;
         ridge.scale.set(1.03, 1.15 - i * 0.035, 1);
         coconut.add(ridge);
       }
 
-      // More natural-looking patches
-      const patchMat = new THREE.MeshStandardMaterial({
-        color: 0x7a5a35,
-        roughness: 1,
-        metalness: 0,
-        transparent: true,
-        opacity: 0.2
+      const patchMat = smat(0x7a5a35, 1, 0, {transparent:true, opacity:0.2});
+      [[-0.32,0.15,0.57,0.18,0.09,-0.4],[0.35,-0.08,0.59,0.2,0.1,0.5],[-0.18,-0.35,0.45,0.16,0.08,0.25],
+       [0.15,0.38,0.44,0.14,0.07,-0.15],[0.0,0.25,0.52,0.12,0.06,0.8],[-0.25,-0.2,0.48,0.15,0.075,-0.6]
+      ].forEach(([x,y,z,sx,sy,rot]) => {
+        const p = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 24), patchMat);
+        p.scale.set(sx, sy, 0.04); p.position.set(x, y, z);
+        p.rotation.z = rot; p.rotation.x = -0.08;
+        coconut.add(p);
       });
 
-      const patchSpecs = [
-        [-0.32, 0.15, 0.57, 0.18, 0.09, -0.4],
-        [0.35, -0.08, 0.59, 0.2, 0.1, 0.5],
-        [-0.18, -0.35, 0.45, 0.16, 0.08, 0.25],
-        [0.15, 0.38, 0.44, 0.14, 0.07, -0.15],
-        [0.0, 0.25, 0.52, 0.12, 0.06, 0.8],
-        [-0.25, -0.2, 0.48, 0.15, 0.075, -0.6]
-      ];
-
-      patchSpecs.forEach(([x, y, z, sx, sy, rot]) => {
-        const patch = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 24), patchMat);
-        patch.scale.set(sx, sy, 0.04);
-        patch.position.set(x, y, z);
-        patch.rotation.z = rot;
-        patch.rotation.x = -0.08;
-        coconut.add(patch);
-      });
-
-      // Enhanced eyes with realistic engraving
       const eyeGroup = new THREE.Group();
       eyeGroup.position.set(0.0, -0.015, 0.92);
       eyeGroup.rotation.x = -0.03;
+      const eyeSocketMat = smat(0x1a0f08, 0.95, 0.01);
+      const eyeHiMat = smat(0x2a1810, 0.9, 0.02, {emissive:0x0a0503, emissiveIntensity:0.1});
 
-      const eyeSocketMat = new THREE.MeshStandardMaterial({
-        color: 0x1a0f08,
-        roughness: 0.95,
-        metalness: 0.01
+      [[-0.16, 0.07, 0.105], [0.0, -0.025, 0.118], [0.16, 0.07, 0.105]].forEach(([x, y, r]) => {
+        const sock = new THREE.Mesh(new THREE.CylinderGeometry(r*0.9, r*1.1, 0.08, 16), eyeSocketMat);
+        sock.position.set(x, y, -0.04); sock.rotation.x = PI/2; eyeGroup.add(sock);
+        const inner = new THREE.Mesh(new THREE.CylinderGeometry(r*0.6, r*0.8, 0.06, 12), eyeHiMat);
+        inner.position.set(x, y, -0.07); inner.rotation.x = PI/2; eyeGroup.add(inner);
+        const sparkle = new THREE.Mesh(new THREE.SphereGeometry(r*0.15, 8, 8), bmat(0x4a4a4a, {transparent:true, opacity:0.6}));
+        sparkle.position.set(x + r*0.3, y + r*0.3, -0.09); eyeGroup.add(sparkle);
       });
-
-      const eyeHighlightMat = new THREE.MeshStandardMaterial({
-        color: 0x2a1810,
-        roughness: 0.9,
-        metalness: 0.02,
-        emissive: 0x0a0503,
-        emissiveIntensity: 0.1
-      });
-
-      const eyeLayout = [
-        [-0.16, 0.07, 0.105],
-        [0.0, -0.025, 0.118],
-        [0.16, 0.07, 0.105]
-      ];
-
-      eyeLayout.forEach(([x, y, r]) => {
-        // Create engraved eye socket using a cylinder that extends inward
-        const eyeSocket = new THREE.Mesh(
-          new THREE.CylinderGeometry(r * 0.9, r * 1.1, 0.08, 16),
-          eyeSocketMat
-        );
-        eyeSocket.position.set(x, y, -0.04);
-        eyeSocket.rotation.x = Math.PI / 2;
-        eyeGroup.add(eyeSocket);
-
-        // Add inner depth with a smaller cylinder
-        const eyeInner = new THREE.Mesh(
-          new THREE.CylinderGeometry(r * 0.6, r * 0.8, 0.06, 12),
-          eyeHighlightMat
-        );
-        eyeInner.position.set(x, y, -0.07);
-        eyeInner.rotation.x = Math.PI / 2;
-        eyeGroup.add(eyeInner);
-
-        // Add a subtle highlight at the back
-        const eyeSparkle = new THREE.Mesh(
-          new THREE.SphereGeometry(r * 0.15, 8, 8),
-          new THREE.MeshBasicMaterial({
-            color: 0x4a4a4a,
-            transparent: true,
-            opacity: 0.6
-          })
-        );
-        eyeSparkle.position.set(x + r * 0.3, y + r * 0.3, -0.09);
-        eyeGroup.add(eyeSparkle);
-      });
-
       coconut.add(eyeGroup);
 
-      // Add subtle surface texture for realism
-      const textureMat = new THREE.MeshStandardMaterial({
-        color: 0x3a2015,
-        roughness: 1.0,
-        metalness: 0,
-        transparent: true,
-        opacity: 0.15
+      const texMat = smat(0x3a2015, 1, 0, {transparent:true, opacity:0.15});
+      const varMat = smat(0x2a1810, 1, 0, {transparent:true, opacity:0.08});
+      const weatherMats = [smat(0x5a3a20, 1, 0, {transparent:true, opacity:0.08}), smat(0x2a1810, 1, 0, {transparent:true, opacity:0.06})];
+
+      const scatterSpecs = [
+        {count:25, rng:[0.02,0.03], seg:6, mat:texMat, rad:0.95, radZ:0.9, sy:[0.3,0.4], sx:1, szm:1},
+        {count:8, rng:[0.04,0.06], seg:8, mat:varMat, rad:0.92, radZ:0.88, sy:[0.2,0.3], sx:1.2, szm:1.2},
+        {count:12, rng:[0.03,0.04], seg:6, mat:null, rad:0.94, radZ:0.91, sy:[0.15,0.2], sx:1.5, szm:1.5}
+      ];
+      scatterSpecs.forEach(spec => {
+        for (let i = 0; i < spec.count; i++) {
+          const m = spec.mat || weatherMats[Math.random() > 0.5 ? 0 : 1];
+          const sp = new THREE.Mesh(new THREE.SphereGeometry(spec.rng[0] + Math.random() * spec.rng[1], spec.seg, spec.seg), m);
+          const [nx, ny, nz] = rndSph();
+          sp.position.set(nx * spec.rad, ny * spec.rad, nz * spec.radZ);
+          sp.scale.set(spec.sx, spec.sy[0] + Math.random() * spec.sy[1], spec.szm);
+          coconut.add(sp);
+        }
       });
 
-      // Add small surface imperfections
-      for (let i = 0; i < 25; i++) {
-        const imperfection = new THREE.Mesh(
-          new THREE.SphereGeometry(0.02 + Math.random() * 0.03, 6, 6),
-          textureMat
-        );
-
-        const theta = Math.random() * Math.PI * 2;
-        const v = Math.random() * 2 - 1;
-        const r = Math.sqrt(1 - v * v);
-        const nx = Math.cos(theta) * r;
-        const ny = v;
-        const nz = Math.sin(theta) * r;
-
-        imperfection.position.set(nx * 0.95, ny * 0.95, nz * 0.9);
-        imperfection.scale.set(1, 0.3 + Math.random() * 0.4, 1);
-        coconut.add(imperfection);
-      }
-
-      // Add some larger surface variations
-      for (let i = 0; i < 8; i++) {
-        const variation = new THREE.Mesh(
-          new THREE.SphereGeometry(0.04 + Math.random() * 0.06, 8, 8),
-          new THREE.MeshStandardMaterial({
-            color: 0x2a1810,
-            roughness: 1.0,
-            metalness: 0,
-            transparent: true,
-            opacity: 0.08
-          })
-        );
-
-        const theta = Math.random() * Math.PI * 2;
-        const v = Math.random() * 2 - 1;
-        const r = Math.sqrt(1 - v * v);
-        const nx = Math.cos(theta) * r;
-        const ny = v;
-        const nz = Math.sin(theta) * r;
-
-        variation.position.set(nx * 0.92, ny * 0.92, nz * 0.88);
-        variation.scale.set(1.2, 0.2 + Math.random() * 0.3, 1.2);
-        coconut.add(variation);
-      }
-
-      // Add subtle weathering spots for aged look
-      for (let i = 0; i < 12; i++) {
-        const weatherSpot = new THREE.Mesh(
-          new THREE.SphereGeometry(0.03 + Math.random() * 0.04, 6, 6),
-          new THREE.MeshStandardMaterial({
-            color: Math.random() > 0.5 ? 0x5a3a20 : 0x2a1810,
-            roughness: 1.0,
-            metalness: 0,
-            transparent: true,
-            opacity: 0.05 + Math.random() * 0.08
-          })
-        );
-
-        const theta = Math.random() * Math.PI * 2;
-        const v = Math.random() * 2 - 1;
-        const r = Math.sqrt(1 - v * v);
-        const nx = Math.cos(theta) * r;
-        const ny = v;
-        const nz = Math.sin(theta) * r;
-
-        weatherSpot.position.set(nx * 0.94, ny * 0.94, nz * 0.91);
-        weatherSpot.scale.set(1.5, 0.15 + Math.random() * 0.2, 1.5);
-        coconut.add(weatherSpot);
-      }
-
-      // Enhanced stem system
-      const topStemMat = new THREE.MeshStandardMaterial({
-        color: 0x5a3a20,
-        roughness: 0.95,
-        metalness: 0.01
-      });
-
+      const topStemMat = smat(0x5a3a20, 0.95, 0.01);
       const stemBase = new THREE.Mesh(new THREE.CircleGeometry(0.085, 24), topStemMat);
-      stemBase.rotation.x = -Math.PI / 2;
-      stemBase.position.y = 1.02;
+      stemBase.rotation.x = -PI / 2; stemBase.position.y = 1.02;
       coconut.add(stemBase);
 
-      // More varied stem tufts
       for (let i = 0; i < 16; i++) {
-        const tuftLen = 0.12 + Math.random() * 0.08;
-        const tuft = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.003, 0.008, tuftLen, 6),
-          topStemMat
-        );
-        tuft.position.set((Math.random() - 0.5) * 0.09, 1.025 + Math.random() * 0.025, (Math.random() - 0.5) * 0.09);
-        tuft.rotation.z = (Math.random() - 0.5) * 1.2;
-        tuft.rotation.x = (Math.random() - 0.5) * 1.2;
+        const tuft = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.008, 0.12 + Math.random() * 0.08, 6), topStemMat);
+        tuft.position.set((Math.random()-0.5)*0.09, 1.025+Math.random()*0.025, (Math.random()-0.5)*0.09);
+        tuft.rotation.z = (Math.random()-0.5)*1.2; tuft.rotation.x = (Math.random()-0.5)*1.2;
         coconut.add(tuft);
       }
 
-      // Enhanced shadow with more detail
-      const baseShadow = new THREE.Mesh(
-        new THREE.CircleGeometry(0.95, 48),
-        new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
-      );
-      baseShadow.rotation.x = -Math.PI / 2;
-      baseShadow.position.y = -1.02;
+      const baseShadow = new THREE.Mesh(new THREE.CircleGeometry(0.95, 48), bmat(0x000000, {transparent:true, opacity:0.15}));
+      baseShadow.rotation.x = -PI / 2; baseShadow.position.y = -1.02;
       baseShadow.scale.set(1.04, 0.68, 1);
       coconut.add(baseShadow);
 
-      const mobileScale = isMobileViewport() ? 0.9 : 1.0;
+      const ms = isMobileViewport() ? 0.9 : 1.0;
       coconut.position.set(0, 1.05, 0.7);
-      coconut.scale.set(1.15 * mobileScale, 1.25 * mobileScale, 1.08 * mobileScale);
+      coconut.scale.set(1.15*ms, 1.25*ms, 1.08*ms);
       coconut.rotation.set(-0.05, -0.16, -0.06);
       scene.add(coconut);
     }
 
     function createPalm(x, z, height, lean) {
       const group = new THREE.Group();
-
-      // Trunk with rings
-      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3b281e, roughness: 1 });
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.17, 0.32, height, 8, 14),
-        trunkMat
-      );
-      trunk.position.y = height / 2;
-      trunk.rotation.z = lean;
-      trunk.castShadow = true;
+      const trunkMat = smat(0x3b281e);
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.32, height, 8, 14), trunkMat);
+      trunk.position.y = height / 2; trunk.rotation.z = lean; trunk.castShadow = true;
       group.add(trunk);
 
-      // Trunk ring details
-      const ringMat = new THREE.MeshStandardMaterial({ color: 0x2a1c14, roughness: 1, transparent: true, opacity: 0.5 });
+      const ringMat = smat(0x2a1c14, 1, 0, {transparent:true, opacity:0.5});
       for (let r = 0; r < 8; r++) {
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(0.19 + r * 0.002, 0.012, 6, 12),
-          ringMat
-        );
-        ring.position.y = 1 + r * (height / 10);
-        ring.rotation.x = Math.PI / 2;
-        ring.rotation.z = lean;
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.19 + r * 0.002, 0.012, 6, 12), ringMat);
+        ring.position.y = 1 + r * (height / 10); ring.rotation.x = PI / 2; ring.rotation.z = lean;
         group.add(ring);
       }
 
       const top = new THREE.Vector3(Math.sin(lean) * (height * 0.45), height, 0);
-
-      // More fronds with varied sizes and proper drooping
-      const frondCount = 11;
-      for (let i = 0; i < frondCount; i++) {
-        const isInner = i >= 7;
-        const frondLen = isInner ? 3.2 + Math.random() * 1.2 : 4.8 + Math.random() * 1.5;
-        const frondWidth = isInner ? 0.5 : 0.7 + Math.random() * 0.2;
-        const leafGeo = new THREE.PlaneGeometry(frondLen, frondWidth, 12, 1);
-
-        // Add droop to the frond by bending vertices
-        const lpos = leafGeo.attributes.position;
-        for (let v = 0; v < lpos.count; v++) {
-          const lx = lpos.getX(v);
-          const progress = (lx + frondLen / 2) / frondLen;
-          lpos.setZ(v, -Math.pow(progress, 2.2) * 1.8);
+      const greens = [0x243a21, 0x2e4728, 0x1e3018];
+      for (let i = 0; i < 11; i++) {
+        const inner = i >= 7;
+        const fl = inner ? 3.2 + Math.random() * 1.2 : 4.8 + Math.random() * 1.5;
+        const fw = inner ? 0.5 : 0.7 + Math.random() * 0.2;
+        const leafGeo = new THREE.PlaneGeometry(fl, fw, 12, 1);
+        const lp = leafGeo.attributes.position;
+        for (let v = 0; v < lp.count; v++) {
+          const lx = lp.getX(v);
+          lp.setZ(v, -Math.pow((lx + fl / 2) / fl, 2.2) * 1.8);
         }
         leafGeo.computeVertexNormals();
-
-        const greenShade = Math.random();
-        const leaf = new THREE.Mesh(
-          leafGeo,
-          new THREE.MeshStandardMaterial({
-            color: greenShade > 0.5 ? 0x243a21 : greenShade > 0.25 ? 0x2e4728 : 0x1e3018,
-            side: THREE.DoubleSide,
-            roughness: 0.95
-          })
-        );
+        const leaf = new THREE.Mesh(leafGeo, smat(greens[Math.floor(Math.random()*3)], 0.95, 0, {side: THREE.DoubleSide}));
         leaf.position.copy(top);
-        const droopAngle = isInner ? -0.35 : -0.65 - Math.random() * 0.15;
-        leaf.rotation.x = droopAngle;
-        leaf.rotation.y = (Math.PI * 2 * i) / frondCount + (Math.random() - 0.5) * 0.15;
+        leaf.rotation.x = inner ? -0.35 : -0.65 - Math.random() * 0.15;
+        leaf.rotation.y = (PI2 * i) / 11 + (Math.random() - 0.5) * 0.15;
         leaf.rotation.z = -0.25 + (Math.random() - 0.5) * 0.1;
         leaf.castShadow = true;
         group.add(leaf);
       }
 
-      // Coconut cluster at the top
-      const coconutClusterMat = new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.85, metalness: 0.02 });
+      const nutMat = smat(0x3a2418, 0.85, 0.02);
       for (let c = 0; c < 3; c++) {
-        const nut = new THREE.Mesh(
-          new THREE.SphereGeometry(0.22, 8, 8),
-          coconutClusterMat
-        );
-        const cAngle = (c / 3) * Math.PI * 2 + 0.4;
-        nut.position.set(
-          top.x + Math.cos(cAngle) * 0.28,
-          top.y - 0.5 - c * 0.15,
-          Math.sin(cAngle) * 0.28
-        );
+        const nut = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), nutMat);
+        const ca = (c / 3) * PI2 + 0.4;
+        nut.position.set(top.x + Math.cos(ca) * 0.28, top.y - 0.5 - c * 0.15, Math.sin(ca) * 0.28);
         nut.scale.set(1, 1.15, 0.9);
         group.add(nut);
       }
@@ -1521,463 +1174,217 @@
 
     function createBird(x, y, z, scale = 1) {
       const bird = new THREE.Group();
-      const wingMat = new THREE.MeshBasicMaterial({ color: 0x2f241d, fog: true });
-
-      const leftWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
-      leftWing.position.set(-0.35, 0, 0);
-      leftWing.rotation.z = 0.22;
-
-      const rightWing = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.18), wingMat);
-      rightWing.position.set(0.35, 0, 0);
-      rightWing.rotation.z = -0.22;
-
-      bird.add(leftWing, rightWing);
-      bird.position.set(x, y, z);
-      bird.scale.setScalar(scale);
+      const wm = bmat(0x2f241d, {fog:true});
+      const geo = new THREE.PlaneGeometry(0.9, 0.18);
+      const lw = new THREE.Mesh(geo, wm); lw.position.set(-0.35, 0, 0); lw.rotation.z = 0.22;
+      const rw = new THREE.Mesh(geo, wm); rw.position.set(0.35, 0, 0); rw.rotation.z = -0.22;
+      bird.add(lw, rw);
+      bird.position.set(x, y, z); bird.scale.setScalar(scale);
       bird.userData = {
-        flapOffset: Math.random() * Math.PI * 2,
-        driftOffset: Math.random() * Math.PI * 2,
-        speed: 0.08 + Math.random() * 0.04,
-        wingSpan: 0.45 + Math.random() * 0.18,
-        baseX: x,
-        baseY: y,
-        baseZ: z
+        flapOffset: Math.random()*PI2, driftOffset: Math.random()*PI2,
+        speed: 0.08+Math.random()*0.04, wingSpan: 0.45+Math.random()*0.18,
+        baseX: x, baseY: y, baseZ: z
       };
-
       return bird;
     }
 
     function addFarEnvironmentRing() {
-      const farPalmGroup = new THREE.Group();
-
+      const fp = new THREE.Group();
       for (let i = 0; i < 30; i++) {
-        const angle = (i / 30) * Math.PI * 2;
-        const radius = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const h = 10 + Math.random() * 8;
-        const lean = 0.12 + Math.random() * 0.16;
-        farPalmGroup.add(createPalm(x, z, h, lean));
+        const a = (i / 30) * PI2, r = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
+        fp.add(createPalm(Math.cos(a)*r, Math.sin(a)*r, 10+Math.random()*8, 0.12+Math.random()*0.16));
       }
+      scene.add(fp);
 
-      scene.add(farPalmGroup);
-
-      const moundMat = new THREE.MeshStandardMaterial({
-        color: 0x35503a,
-        roughness: 1,
-        metalness: 0
-      });
-
+      const mm = smat(0x35503a);
       for (let i = 0; i < 18; i++) {
-        const angle = (i / 18) * Math.PI * 2 + 0.08;
-        const radius = 84 + Math.random() * 18;
-        const mound = new THREE.Mesh(
-          new THREE.SphereGeometry(4 + Math.random() * 5, 16, 16),
-          moundMat
-        );
-
-        mound.scale.y = 0.4 + Math.random() * 0.25;
-        mound.position.set(Math.cos(angle) * radius, 0.6, Math.sin(angle) * radius);
-        scene.add(mound);
+        const a = (i / 18) * PI2 + 0.08, r = 84 + Math.random() * 18;
+        const m = new THREE.Mesh(new THREE.SphereGeometry(4 + Math.random() * 5, 16, 16), mm);
+        m.scale.y = 0.4 + Math.random() * 0.25;
+        m.position.set(Math.cos(a) * r, 0.6, Math.sin(a) * r);
+        scene.add(m);
       }
     }
 
     function initBackground() {
       palmGroup = new THREE.Group();
-
-      [
-        [-54, -8, 11, 0.16], [-43, -14, 12, 0.18], [-34, -21, 12, 0.23], [-25, -29, 13, 0.18],
-        [-13, -12, 9, 0.12], [6, -15, 10, 0.16], [18, -10, 12, 0.18], [28, -14, 13, 0.24],
-        [37, -8, 15, 0.2], [46, -12, 14, 0.26], [58, -5, 18, 0.28], [64, -16, 16, 0.22],
-        [16, -25, 12, 0.18], [34, -27, 13, 0.22], [-47, -27, 15, 0.25], [-60, -17, 17, 0.26]
-      ].forEach(args => palmGroup.add(createPalm(...args)));
-
+      [[-54,-8,11,0.16],[-43,-14,12,0.18],[-34,-21,12,0.23],[-25,-29,13,0.18],
+       [-13,-12,9,0.12],[6,-15,10,0.16],[18,-10,12,0.18],[28,-14,13,0.24],
+       [37,-8,15,0.2],[46,-12,14,0.26],[58,-5,18,0.28],[64,-16,16,0.22],
+       [16,-25,12,0.18],[34,-27,13,0.22],[-47,-27,15,0.25],[-60,-17,17,0.26]
+      ].forEach(a => palmGroup.add(createPalm(...a)));
       scene.add(palmGroup);
 
       hutGroup = new THREE.Group();
-      const hutMat = new THREE.MeshStandardMaterial({ color: 0x35251b, roughness: 1 });
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x5c462b, roughness: 1 });
-
-      [
-        [-47, -19, 1.05], [-35, -22, 1.2], [-18, -21, 1.38], [1, -23, 1.18], [18, -19, 1.48], [34, -18, 1.22]
-      ].forEach(([x, z, s]) => {
+      const hutMat = smat(0x35251b), roofMat = smat(0x5c462b);
+      [[-47,-19,1.05],[-35,-22,1.2],[-18,-21,1.38],[1,-23,1.18],[18,-19,1.48],[34,-18,1.22]].forEach(([x,z,s]) => {
         const hut = new THREE.Group();
-
-        const base = new THREE.Mesh(new THREE.BoxGeometry(3.2 * s, 1.7 * s, 2.4 * s), hutMat);
-        const roof = new THREE.Mesh(new THREE.ConeGeometry(2.5 * s, 1.8 * s, 4), roofMat);
-
-        base.position.y = 1.3 * s;
-        roof.position.y = 2.95 * s;
-        roof.rotation.y = Math.PI / 4;
-        base.castShadow = true;
-        roof.castShadow = true;
-
-        hut.add(base, roof);
-        hut.position.set(x, 0, z);
-        hut.rotation.y = Math.random() * Math.PI;
+        const base = new THREE.Mesh(new THREE.BoxGeometry(3.2*s, 1.7*s, 2.4*s), hutMat);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(2.5*s, 1.8*s, 4), roofMat);
+        base.position.y = 1.3*s; roof.position.y = 2.95*s; roof.rotation.y = PI/4;
+        base.castShadow = roof.castShadow = true;
+        hut.add(base, roof); hut.position.set(x, 0, z); hut.rotation.y = Math.random() * PI;
         hutGroup.add(hut);
       });
-
       scene.add(hutGroup);
 
       birdGroup = new THREE.Group();
-      [
-        [-10, 8.7, -18, 0.72],
-        [-2, 9.1, -17, 0.66],
-        [10, 9.5, -19, 0.6],
-        [19, 8.5, -16.5, 0.7],
-        [28, 9.0, -20, 0.62]
-      ].forEach(args => birdGroup.add(createBird(...args)));
-
+      [[-10,8.7,-18,0.72],[-2,9.1,-17,0.66],[10,9.5,-19,0.6],[19,8.5,-16.5,0.7],[28,9,-20,0.62]]
+        .forEach(a => birdGroup.add(createBird(...a)));
       scene.add(birdGroup);
 
-      const rockGeo = new THREE.DodecahedronGeometry(0.5, 0);
-      const rockMat = new THREE.MeshStandardMaterial({ color: 0x5a4334, roughness: 1 });
-
-      for (let i = 0; i < 7; i++) {
-        const rock = new THREE.Mesh(rockGeo, rockMat);
-        rock.scale.setScalar(0.7 + Math.random() * 1.7);
-        rock.position.set(18 + Math.random() * 42, 0.25, -1 - Math.random() * 10);
-        rock.rotation.set(Math.random(), Math.random(), Math.random());
-        rock.castShadow = true;
-        scene.add(rock);
-      }
-
-      for (let i = 0; i < 5; i++) {
-        const rock = new THREE.Mesh(rockGeo, rockMat);
-        rock.scale.setScalar(0.6 + Math.random() * 1.2);
-        rock.position.set(-14 - Math.random() * 24, 0.22, -2 - Math.random() * 9);
-        rock.rotation.set(Math.random(), Math.random(), Math.random());
-        rock.castShadow = true;
-        scene.add(rock);
-      }
+      const rockGeo = new THREE.DodecahedronGeometry(0.5, 0), rockMat = smat(0x5a4334);
+      [[7,18,42,0.25,-1,-10,0.7,1.7],[5,-14,-24,0.22,-2,-9,0.6,1.2]].forEach(([n,ox,rx,oy,oz,rz,sMin,sRng]) => {
+        for (let i = 0; i < n; i++) {
+          const rock = new THREE.Mesh(rockGeo, rockMat);
+          rock.scale.setScalar(sMin + Math.random() * sRng);
+          rock.position.set(ox + Math.random() * Math.abs(rx), oy, oz - Math.random() * Math.abs(rz));
+          rock.rotation.set(Math.random(), Math.random(), Math.random());
+          rock.castShadow = true;
+          scene.add(rock);
+        }
+      });
 
       addFarEnvironmentRing();
-      initClouds();
-      initBeachDetails();
-      initSailboat();
-      initFireflies();
-      initWaveSpray();
-      initVegetation();
+      initClouds(); initBeachDetails(); initSailboat(); initFireflies(); initWaveSpray(); initVegetation();
     }
 
     function initClouds() {
       cloudGroup = new THREE.Group();
-
-      const cloudMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 1,
-        metalness: 0,
-        transparent: true,
-        opacity: 0.65,
-        depthWrite: false
-      });
-
-      function makeCloud(x, y, z, scale) {
-        const cloud = new THREE.Group();
-        const puffCount = 5 + Math.floor(Math.random() * 6);
-        for (let i = 0; i < puffCount; i++) {
-          const puff = new THREE.Mesh(
-            new THREE.SphereGeometry(1.8 + Math.random() * 2.2, 12, 12),
-            cloudMat
-          );
-          puff.position.set(
-            (Math.random() - 0.5) * 6,
-            (Math.random() - 0.3) * 1.8,
-            (Math.random() - 0.5) * 3
-          );
-          puff.scale.y = 0.45 + Math.random() * 0.25;
-          cloud.add(puff);
+      const cm = smat(0xffffff, 1, 0, {transparent:true, opacity:0.65, depthWrite:false});
+      function mkCloud(x, y, z, s) {
+        const c = new THREE.Group();
+        for (let i = 0, n = 5 + Math.floor(Math.random() * 6); i < n; i++) {
+          const p = new THREE.Mesh(new THREE.SphereGeometry(1.8 + Math.random() * 2.2, 12, 12), cm);
+          p.position.set((Math.random()-0.5)*6, (Math.random()-0.3)*1.8, (Math.random()-0.5)*3);
+          p.scale.y = 0.45 + Math.random() * 0.25;
+          c.add(p);
         }
-        cloud.position.set(x, y, z);
-        cloud.scale.setScalar(scale);
-        cloud.userData = { baseX: x, speed: 0.15 + Math.random() * 0.25, range: 60 + Math.random() * 40 };
-        return cloud;
+        c.position.set(x, y, z); c.scale.setScalar(s);
+        c.userData = {baseX: x, speed: 0.15+Math.random()*0.25, range: 60+Math.random()*40};
+        return c;
       }
-
-      const cloudSpecs = [
-        [-45, 22, -55, 1.8], [-15, 26, -65, 2.2], [25, 20, -50, 1.5],
-        [55, 28, -70, 2.0], [-70, 24, -60, 1.6], [80, 22, -55, 1.4],
-        [0, 30, -80, 2.5], [-30, 18, -45, 1.2], [40, 25, -75, 1.9],
-        [-55, 32, -85, 2.1], [65, 19, -42, 1.3], [10, 27, -72, 1.7]
-      ];
-
-      cloudSpecs.forEach(args => cloudGroup.add(makeCloud(...args)));
+      [[-45,22,-55,1.8],[-15,26,-65,2.2],[25,20,-50,1.5],[55,28,-70,2],[-70,24,-60,1.6],[80,22,-55,1.4],
+       [0,30,-80,2.5],[-30,18,-45,1.2],[40,25,-75,1.9],[-55,32,-85,2.1],[65,19,-42,1.3],[10,27,-72,1.7]
+      ].forEach(a => cloudGroup.add(mkCloud(...a)));
       scene.add(cloudGroup);
     }
 
     function initBeachDetails() {
-      // Seashells
-      const shellMat = new THREE.MeshStandardMaterial({ color: 0xf0e0c8, roughness: 0.6, metalness: 0.05 });
-      const shellMat2 = new THREE.MeshStandardMaterial({ color: 0xe8c8a0, roughness: 0.7, metalness: 0.02 });
-
+      const sm1 = smat(0xf0e0c8, 0.6, 0.05), sm2 = smat(0xe8c8a0, 0.7, 0.02);
       for (let i = 0; i < 18; i++) {
-        const shell = new THREE.Mesh(
-          new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 8, 6),
-          Math.random() > 0.5 ? shellMat : shellMat2
-        );
-        shell.scale.set(1, 0.3 + Math.random() * 0.3, 1.2 + Math.random() * 0.5);
-        shell.position.set(
-          (Math.random() - 0.5) * 50,
-          0.02 + Math.random() * 0.04,
-          -1 + Math.random() * 6
-        );
-        shell.rotation.y = Math.random() * Math.PI * 2;
-        shell.castShadow = true;
-        scene.add(shell);
+        const sh = new THREE.Mesh(new THREE.SphereGeometry(0.08+Math.random()*0.12, 8, 6), Math.random()>0.5?sm1:sm2);
+        sh.scale.set(1, 0.3+Math.random()*0.3, 1.2+Math.random()*0.5);
+        sh.position.set((Math.random()-0.5)*50, 0.02+Math.random()*0.04, -1+Math.random()*6);
+        sh.rotation.y = Math.random()*PI2; sh.castShadow = true;
+        scene.add(sh);
       }
 
-      // Starfish
-      const starfishMat = new THREE.MeshStandardMaterial({ color: 0xd4624a, roughness: 0.85, metalness: 0 });
+      const sfm = smat(0xd4624a, 0.85);
       for (let i = 0; i < 4; i++) {
-        const starfish = new THREE.Group();
+        const sf = new THREE.Group();
         for (let a = 0; a < 5; a++) {
-          const arm = new THREE.Mesh(
-            new THREE.ConeGeometry(0.06, 0.28, 6),
-            starfishMat
-          );
-          const angle = (a / 5) * Math.PI * 2;
-          arm.position.set(Math.cos(angle) * 0.12, 0, Math.sin(angle) * 0.12);
-          arm.rotation.z = -Math.PI / 2;
-          arm.rotation.y = angle;
-          starfish.add(arm);
+          const arm = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.28, 6), sfm);
+          const ang = (a/5)*PI2;
+          arm.position.set(Math.cos(ang)*0.12, 0, Math.sin(ang)*0.12);
+          arm.rotation.z = -PI/2; arm.rotation.y = ang;
+          sf.add(arm);
         }
-        const center = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), starfishMat);
-        center.scale.y = 0.3;
-        starfish.add(center);
-        starfish.position.set(
-          (Math.random() - 0.5) * 40,
-          0.03,
-          1 + Math.random() * 5
-        );
-        starfish.rotation.y = Math.random() * Math.PI * 2;
-        starfish.castShadow = true;
-        scene.add(starfish);
+        const ctr = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), sfm);
+        ctr.scale.y = 0.3; sf.add(ctr);
+        sf.position.set((Math.random()-0.5)*40, 0.03, 1+Math.random()*5);
+        sf.rotation.y = Math.random()*PI2; sf.castShadow = true;
+        scene.add(sf);
       }
 
-      // Driftwood pieces
-      const driftwoodMat = new THREE.MeshStandardMaterial({ color: 0x8a7560, roughness: 1, metalness: 0 });
+      const dwm = smat(0x8a7560);
       for (let i = 0; i < 6; i++) {
-        const dw = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.04 + Math.random() * 0.06, 0.03 + Math.random() * 0.05, 0.6 + Math.random() * 1.2, 6),
-          driftwoodMat
-        );
-        dw.position.set(
-          (Math.random() - 0.5) * 44,
-          0.04,
-          -2 + Math.random() * 7
-        );
-        dw.rotation.z = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
-        dw.rotation.y = Math.random() * Math.PI;
-        dw.castShadow = true;
-        scene.add(dw);
+        const dw = new THREE.Mesh(new THREE.CylinderGeometry(0.04+Math.random()*0.06, 0.03+Math.random()*0.05, 0.6+Math.random()*1.2, 6), dwm);
+        dw.position.set((Math.random()-0.5)*44, 0.04, -2+Math.random()*7);
+        dw.rotation.z = PI/2+(Math.random()-0.5)*0.4; dw.rotation.y = Math.random()*PI;
+        dw.castShadow = true; scene.add(dw);
       }
 
-      // Small pebbles scattered along shore
-      const pebbleMat = new THREE.MeshStandardMaterial({ color: 0x9a8a78, roughness: 0.9, metalness: 0 });
+      const pm = smat(0x9a8a78, 0.9);
       for (let i = 0; i < 30; i++) {
-        const pebble = new THREE.Mesh(
-          new THREE.SphereGeometry(0.03 + Math.random() * 0.06, 6, 6),
-          pebbleMat
-        );
-        pebble.scale.y = 0.3 + Math.random() * 0.3;
-        pebble.position.set(
-          (Math.random() - 0.5) * 55,
-          0.01,
-          -3 + Math.random() * 4
-        );
-        scene.add(pebble);
+        const p = new THREE.Mesh(new THREE.SphereGeometry(0.03+Math.random()*0.06, 6, 6), pm);
+        p.scale.y = 0.3+Math.random()*0.3;
+        p.position.set((Math.random()-0.5)*55, 0.01, -3+Math.random()*4);
+        scene.add(p);
       }
     }
 
     function initSailboat() {
       sailboatGroup = new THREE.Group();
-
-      const hullMat = new THREE.MeshStandardMaterial({ color: 0x6b3a2a, roughness: 0.8, metalness: 0 });
-      const hull = new THREE.Mesh(
-        new THREE.BoxGeometry(1.8, 0.5, 0.7),
-        hullMat
-      );
-      hull.scale.set(1, 1, 1);
-      sailboatGroup.add(hull);
-
-      // Mast
-      const mastMat = new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.9, metalness: 0 });
-      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 2.2, 6), mastMat);
-      mast.position.set(0.1, 1.1, 0);
-      sailboatGroup.add(mast);
-
-      // Sail
-      const sailMat = new THREE.MeshStandardMaterial({
-        color: 0xfff8ee,
-        roughness: 0.95,
-        metalness: 0,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.92
-      });
-      const sail = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.6), sailMat);
-      sail.position.set(0.55, 1.0, 0);
-      sail.rotation.y = 0.15;
-      sailboatGroup.add(sail);
-
-      sailboatGroup.position.set(-35, -0.3, -32);
-      sailboatGroup.scale.setScalar(1.4);
-      sailboatGroup.userData = { baseX: -35, baseZ: -32 };
+      sailboatGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 0.7), smat(0x6b3a2a, 0.8)));
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 2.2, 6), smat(0x5a4030, 0.9));
+      mast.position.set(0.1, 1.1, 0); sailboatGroup.add(mast);
+      const sail = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.6), smat(0xfff8ee, 0.95, 0, {side:THREE.DoubleSide, transparent:true, opacity:0.92}));
+      sail.position.set(0.55, 1.0, 0); sail.rotation.y = 0.15; sailboatGroup.add(sail);
+      sailboatGroup.position.set(-35, -0.3, -32); sailboatGroup.scale.setScalar(1.4);
+      sailboatGroup.userData = {baseX: -35, baseZ: -32};
       scene.add(sailboatGroup);
     }
 
     function initFireflies() {
       fireflyGroup = new THREE.Group();
-      const fireflyCount = 40;
-
-      for (let i = 0; i < fireflyCount; i++) {
-        const firefly = new THREE.Mesh(
-          new THREE.SphereGeometry(0.04, 6, 6),
-          new THREE.MeshBasicMaterial({
-            color: 0xffee88,
-            transparent: true,
-            opacity: 0,
-            depthWrite: false
-          })
-        );
-        firefly.position.set(
-          (Math.random() - 0.5) * 30,
-          0.5 + Math.random() * 3.5,
-          (Math.random() - 0.5) * 20
-        );
-        firefly.userData = {
-          baseX: firefly.position.x,
-          baseY: firefly.position.y,
-          baseZ: firefly.position.z,
-          phaseX: Math.random() * Math.PI * 2,
-          phaseY: Math.random() * Math.PI * 2,
-          phaseZ: Math.random() * Math.PI * 2,
-          phaseBlink: Math.random() * Math.PI * 2,
-          speed: 0.3 + Math.random() * 0.4
+      for (let i = 0; i < 40; i++) {
+        const ff = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), bmat(0xffee88, {transparent:true, opacity:0, depthWrite:false}));
+        ff.position.set((Math.random()-0.5)*30, 0.5+Math.random()*3.5, (Math.random()-0.5)*20);
+        ff.userData = {
+          baseX:ff.position.x, baseY:ff.position.y, baseZ:ff.position.z,
+          phaseX:Math.random()*PI2, phaseY:Math.random()*PI2, phaseZ:Math.random()*PI2,
+          phaseBlink:Math.random()*PI2, speed:0.3+Math.random()*0.4
         };
-        fireflyGroup.add(firefly);
+        fireflyGroup.add(ff);
       }
-
       scene.add(fireflyGroup);
     }
 
     function initWaveSpray() {
       waveSprayGroup = new THREE.Group();
-      const sprayMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.3,
-        depthWrite: false
-      });
-
+      const spm = bmat(0xffffff, {transparent:true, opacity:0.3, depthWrite:false});
       for (let i = 0; i < 24; i++) {
-        const spray = new THREE.Mesh(
-          new THREE.SphereGeometry(0.02 + Math.random() * 0.04, 4, 4),
-          sprayMat.clone()
-        );
-        spray.position.set(
-          (Math.random() - 0.5) * 40,
-          0.05,
-          -3 + Math.random() * 0.8
-        );
-        spray.userData = {
-          baseX: spray.position.x,
-          baseZ: spray.position.z,
-          phase: Math.random() * Math.PI * 2,
-          speed: 0.8 + Math.random() * 0.5
-        };
-        waveSprayGroup.add(spray);
+        const sp = new THREE.Mesh(new THREE.SphereGeometry(0.02+Math.random()*0.04, 4, 4), spm.clone());
+        sp.position.set((Math.random()-0.5)*40, 0.05, -3+Math.random()*0.8);
+        sp.userData = {baseX:sp.position.x, baseZ:sp.position.z, phase:Math.random()*PI2, speed:0.8+Math.random()*0.5};
+        waveSprayGroup.add(sp);
       }
-
       scene.add(waveSprayGroup);
 
-      // Additional foam lines for more realistic shore
-      secondaryFoam = new THREE.Mesh(
-        new THREE.PlaneGeometry(160, 4, 60, 1),
-        new THREE.MeshBasicMaterial({ color: 0xfff8e8, transparent: true, opacity: 0.12 })
-      );
-      secondaryFoam.rotation.x = -Math.PI / 2;
-      secondaryFoam.position.set(0, -0.08, -4.5);
+      secondaryFoam = new THREE.Mesh(new THREE.PlaneGeometry(160, 4, 60, 1), bmat(0xfff8e8, {transparent:true, opacity:0.12}));
+      secondaryFoam.rotation.x = -PI / 2; secondaryFoam.position.set(0, -0.08, -4.5);
       scene.add(secondaryFoam);
-
-      tertiaryFoam = new THREE.Mesh(
-        new THREE.PlaneGeometry(140, 3, 50, 1),
-        new THREE.MeshBasicMaterial({ color: 0xfff4df, transparent: true, opacity: 0.08 })
-      );
-      tertiaryFoam.rotation.x = -Math.PI / 2;
-      tertiaryFoam.position.set(0, -0.06, -6.2);
+      tertiaryFoam = new THREE.Mesh(new THREE.PlaneGeometry(140, 3, 50, 1), bmat(0xfff4df, {transparent:true, opacity:0.08}));
+      tertiaryFoam.rotation.x = -PI / 2; tertiaryFoam.position.set(0, -0.06, -6.2);
       scene.add(tertiaryFoam);
     }
 
     function initVegetation() {
       vegetationGroup = new THREE.Group();
-      const grassMat = new THREE.MeshStandardMaterial({
-        color: 0x4a7a3a,
-        roughness: 1,
-        metalness: 0,
-        side: THREE.DoubleSide
-      });
-      const darkGrassMat = new THREE.MeshStandardMaterial({
-        color: 0x3a6228,
-        roughness: 1,
-        metalness: 0,
-        side: THREE.DoubleSide
-      });
-
-      // Grass tufts scattered around beach edges
+      const gm = smat(0x4a7a3a, 1, 0, {side:THREE.DoubleSide});
+      const dgm = smat(0x3a6228, 1, 0, {side:THREE.DoubleSide});
       for (let i = 0; i < 60; i++) {
         const tuft = new THREE.Group();
-        const bladeCount = 4 + Math.floor(Math.random() * 5);
-
-        for (let b = 0; b < bladeCount; b++) {
-          const blade = new THREE.Mesh(
-            new THREE.PlaneGeometry(0.06 + Math.random() * 0.04, 0.3 + Math.random() * 0.4),
-            Math.random() > 0.4 ? grassMat : darkGrassMat
-          );
-          blade.position.set(
-            (Math.random() - 0.5) * 0.15,
-            0.15 + Math.random() * 0.1,
-            (Math.random() - 0.5) * 0.15
-          );
-          blade.rotation.y = Math.random() * Math.PI;
-          blade.rotation.x = (Math.random() - 0.5) * 0.5;
-          tuft.add(blade);
+        for (let b = 0, n = 4+Math.floor(Math.random()*5); b < n; b++) {
+          const bl = new THREE.Mesh(new THREE.PlaneGeometry(0.06+Math.random()*0.04, 0.3+Math.random()*0.4), Math.random()>0.4?gm:dgm);
+          bl.position.set((Math.random()-0.5)*0.15, 0.15+Math.random()*0.1, (Math.random()-0.5)*0.15);
+          bl.rotation.y = Math.random()*PI; bl.rotation.x = (Math.random()-0.5)*0.5;
+          tuft.add(bl);
         }
-
-        // Place tufts along the back edge of the beach
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 8 + Math.random() * 20;
-        tuft.position.set(
-          Math.cos(angle) * radius * 2.5,
-          0,
-          4 + Math.random() * 12
-        );
-        tuft.userData = { phaseWind: Math.random() * Math.PI * 2 };
+        const a = Math.random()*PI2, r = 8+Math.random()*20;
+        tuft.position.set(Math.cos(a)*r*2.5, 0, 4+Math.random()*12);
+        tuft.userData = {phaseWind: Math.random()*PI2};
         vegetationGroup.add(tuft);
       }
 
-      // Small tropical flower clusters
-      const flowerColors = [0xff6b8a, 0xffb347, 0xff69b4, 0xff7043, 0xffee58];
+      const fc = [0xff6b8a, 0xffb347, 0xff69b4, 0xff7043, 0xffee58];
       for (let i = 0; i < 12; i++) {
-        const flower = new THREE.Mesh(
-          new THREE.SphereGeometry(0.04 + Math.random() * 0.03, 6, 6),
-          new THREE.MeshStandardMaterial({
-            color: flowerColors[Math.floor(Math.random() * flowerColors.length)],
-            roughness: 0.7,
-            metalness: 0,
-            emissive: flowerColors[Math.floor(Math.random() * flowerColors.length)],
-            emissiveIntensity: 0.1
-          })
-        );
-        flower.position.set(
-          (Math.random() - 0.5) * 50,
-          0.15 + Math.random() * 0.15,
-          6 + Math.random() * 10
-        );
-        vegetationGroup.add(flower);
+        const c1 = fc[Math.floor(Math.random()*fc.length)], c2 = fc[Math.floor(Math.random()*fc.length)];
+        const fl = new THREE.Mesh(new THREE.SphereGeometry(0.04+Math.random()*0.03, 6, 6), smat(c1, 0.7, 0, {emissive:c2, emissiveIntensity:0.1}));
+        fl.position.set((Math.random()-0.5)*50, 0.15+Math.random()*0.15, 6+Math.random()*10);
+        vegetationGroup.add(fl);
       }
-
       scene.add(vegetationGroup);
     }
 
@@ -2020,7 +1427,6 @@
         bird.children[1].rotation.z = -0.18 - Math.sin(t * 4.2 + d.flapOffset) * d.wingSpan;
       });
 
-      // Animate clouds drifting
       if (cloudGroup) {
         cloudGroup.children.forEach(cloud => {
           const d = cloud.userData;
@@ -2029,7 +1435,6 @@
         });
       }
 
-      // Animate sailboat bobbing and drifting
       if (sailboatGroup) {
         const sd = sailboatGroup.userData;
         sailboatGroup.position.y = -0.3 + Math.sin(t * 0.6) * 0.15;
@@ -2039,7 +1444,6 @@
         sailboatGroup.rotation.x = Math.sin(t * 0.5) * 0.03;
       }
 
-      // Animate wave spray particles
       if (waveSprayGroup) {
         waveSprayGroup.children.forEach(spray => {
           const d = spray.userData;
@@ -2050,7 +1454,6 @@
         });
       }
 
-      // Animate secondary/tertiary foam
       if (secondaryFoam) {
         secondaryFoam.position.z = -4.5 + Math.sin(t * 0.7 + 1.2) * 0.2;
         secondaryFoam.material.opacity = 0.08 + Math.sin(t * 1.1) * 0.04;
@@ -2060,7 +1463,6 @@
         tertiaryFoam.material.opacity = 0.05 + Math.sin(t * 0.8 + 1.0) * 0.03;
       }
 
-      // Animate vegetation swaying in wind
       if (vegetationGroup) {
         vegetationGroup.children.forEach(tuft => {
           if (tuft.userData.phaseWind !== undefined) {
@@ -2162,7 +1564,6 @@
       if (bloomEl) bloomEl.style.opacity = String(0.1 + daylight * 0.55 + dusk * 0.22);
       if (warmEl) warmEl.style.opacity = String(Math.max(0.08, 0.25 + dusk * 0.75 - night * 0.18));
 
-      // Animate fireflies at night
       if (fireflyGroup) {
         fireflyGroup.children.forEach(ff => {
           const d = ff.userData;
@@ -2175,7 +1576,6 @@
         });
       }
 
-      // Adjust cloud brightness for day/night
       if (cloudGroup) {
         cloudGroup.children.forEach(cloud => {
           cloud.children.forEach(puff => {
@@ -2185,7 +1585,6 @@
         });
       }
 
-      // Sailboat sail glow at sunset
       if (sailboatGroup && sailboatGroup.children[2]) {
         sailboatGroup.children[2].material.color.copy(
           lerpColorHex('#fff8ee', '#ffd4a0', dusk * 0.6)
@@ -2269,7 +1668,6 @@
         try {
           renderer.domElement.releasePointerCapture(event.pointerId);
         } catch (e) {
-          // no-op
         }
         orbitState.pointerId = null;
       };
@@ -2331,7 +1729,6 @@
       state.activeThoughtIndex = 0;
       if (state.loadedFromCookie) {
         showThought(`🌴 Welcome back, ${state.username}! 🥥\nYour premium coconut observation continues...`, 'welcome');
-        // Show the default thought after the welcome back
         setTimeout(() => showThought('The horizon remains unavailable.'), 7000);
       } else {
         showThought('The horizon remains unavailable.');
