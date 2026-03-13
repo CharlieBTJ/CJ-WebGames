@@ -1246,49 +1246,46 @@
       scene.add(coconut);
     }
 
+    const _palmTrunkMat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.95, metalness:0});
+    const _palmCrownMat = smat(0x4a6a38, 0.7);
+    const _palmFrondMats = [
+      new THREE.MeshStandardMaterial({color:0x2a4a22, roughness:0.85, metalness:0, side:THREE.DoubleSide, vertexColors:true}),
+      new THREE.MeshStandardMaterial({color:0x1e3a16, roughness:0.85, metalness:0, side:THREE.DoubleSide, vertexColors:true}),
+      new THREE.MeshStandardMaterial({color:0x34562a, roughness:0.85, metalness:0, side:THREE.DoubleSide, vertexColors:true})
+    ];
+    const _palmYoungMat = new THREE.MeshStandardMaterial({color:0x4a6a28, roughness:0.8, metalness:0, side:THREE.DoubleSide, vertexColors:true});
+    const _palmDeadMat = smat(0x6a5030, 0.95, 0, {side:THREE.DoubleSide, transparent:true, opacity:0.7});
+    const _palmNutMat = smat(0x3a2418, 0.85, 0.02);
+    const _palmStemMat = smat(0x4a5a2a, 0.9);
+    const _palmRootMat = smat(0x3a2818, 0.95);
+
     function createPalm(x, z, height, lean) {
       const group = new THREE.Group();
 
-      const segments = 18;
-      const segH = height / segments;
-      const trunkGeo = new THREE.CylinderGeometry(0.12, 0.38, height, 10, segments, true);
+      const trunkGeo = new THREE.CylinderGeometry(0.12, 0.38, height, 10, 18, true);
       const tPos = trunkGeo.attributes.position;
-      const tNorm = trunkGeo.attributes.normal;
       const tColors = new Float32Array(tPos.count * 3);
-      const barkLight = new THREE.Color(0x5a4030);
-      const barkDark = new THREE.Color(0x2a1a0e);
-      const barkMid = new THREE.Color(0x3d2a1a);
+      const bkL = new THREE.Color(0x5a4030), bkD = new THREE.Color(0x2a1a0e), bkM = new THREE.Color(0x3d2a1a);
       for (let i = 0; i < tPos.count; i++) {
-        let px = tPos.getX(i), py = tPos.getY(i), pz = tPos.getZ(i);
-        const t = (py + height / 2) / height;
+        const py = tPos.getY(i), t = (py + height / 2) / height;
         const curve = Math.sin(t * PI * 1.2) * lean * height * 0.35;
         const sway = Math.sin(t * PI * 2.8 + 1.0) * 0.12 * (1 - t);
-        px += curve + sway;
-        pz += Math.cos(t * PI * 0.9 + 0.5) * lean * height * 0.08;
-        const bulge = 1 + Math.sin(t * PI * 0.5) * 0.12;
-        const ringBump = 1 + Math.sin(t * height * 2.2) * 0.06;
-        const radMul = bulge * ringBump;
         const dx = tPos.getX(i), dz = tPos.getZ(i);
-        const dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist > 0.001) {
-          px = (px - tPos.getX(i)) + dx * radMul + (px - tPos.getX(i) === 0 ? 0 : 0);
-          px = dx * radMul + curve + sway;
-          pz = dz * radMul + Math.cos(t * PI * 0.9 + 0.5) * lean * height * 0.08;
-        }
-        tPos.setX(i, px); tPos.setY(i, py); tPos.setZ(i, pz);
+        const bulge = (1 + Math.sin(t * PI * 0.5) * 0.12) * (1 + Math.sin(t * height * 2.2) * 0.06);
+        tPos.setX(i, dx * bulge + curve + sway);
+        tPos.setZ(i, dz * bulge + Math.cos(t * PI * 0.9 + 0.5) * lean * height * 0.08);
 
         const ringT = (Math.sin(t * height * 2.2) + 1) * 0.5;
         const scarT = (Math.sin(t * height * 8.5 + 2.0) + 1) * 0.5;
-        const c = barkDark.clone().lerp(barkLight, ringT * 0.6 + scarT * 0.2);
-        c.lerp(barkMid, (1 - t) * 0.3);
-        const grain = (Math.sin(px * 47.3 + py * 31.7) * 0.5 + 0.5) * 0.06;
+        const c = bkD.clone().lerp(bkL, ringT * 0.6 + scarT * 0.2);
+        c.lerp(bkM, (1 - t) * 0.3);
+        const grain = (Math.sin(dx * 47.3 + py * 31.7) * 0.5 + 0.5) * 0.06;
         c.r = Math.min(1, c.r + grain); c.g = Math.min(1, c.g + grain * 0.8); c.b = Math.min(1, c.b + grain * 0.6);
         tColors[i * 3] = c.r; tColors[i * 3 + 1] = c.g; tColors[i * 3 + 2] = c.b;
       }
       trunkGeo.setAttribute('color', new THREE.BufferAttribute(tColors, 3));
       trunkGeo.computeVertexNormals();
-      const trunkMat = new THREE.MeshStandardMaterial({vertexColors:true, roughness:0.95, metalness:0});
-      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+      const trunk = new THREE.Mesh(trunkGeo, _palmTrunkMat);
       trunk.position.y = height / 2; trunk.castShadow = true;
       group.add(trunk);
 
@@ -1298,110 +1295,87 @@
         Math.cos(PI * 0.9 + 0.5) * lean * height * 0.08
       );
 
-      const csGeo = new THREE.CylinderGeometry(0.14, 0.22, 0.9, 8);
-      const csMat = smat(0x4a6a38, 0.7);
-      const cs = new THREE.Mesh(csGeo, csMat);
+      const cs = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 0.9, 6), _palmCrownMat);
       cs.position.copy(topOff).add(new THREE.Vector3(0, -0.1, 0));
       group.add(cs);
 
-      const greens = [
-        new THREE.Color(0x2a4a22), new THREE.Color(0x1e3a16),
-        new THREE.Color(0x34562a), new THREE.Color(0x264020)
-      ];
-      const yellGreens = [new THREE.Color(0x4a6a28), new THREE.Color(0x3a5820)];
-
-      function makeFromd(length, width, segs, droop, curl, isYoung) {
-        const rachisGeo = new THREE.BufferGeometry();
-        const frondGroup = new THREE.Group();
-        const rachis = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.015, 0.008, length, 4, segs),
-          smat(isYoung ? 0x5a7a30 : 0x3a5020, 0.85)
-        );
-        rachis.geometry.translate(0, length / 2, 0);
-        rachis.rotation.x = -PI / 2;
-        frondGroup.add(rachis);
-
-        const leafCount = Math.floor(segs * 1.8);
-        const leafLen = width * 0.55;
-        for (let side = -1; side <= 1; side += 2) {
-          for (let li = 0; li < leafCount; li++) {
-            const lt = li / leafCount;
-            const along = lt * length * 0.92 + length * 0.08;
-            const leafGeo = new THREE.PlaneGeometry(leafLen * (1 - lt * 0.5), 0.06 + (1 - lt) * 0.04, 4, 1);
-            const lp = leafGeo.attributes.position;
-            for (let v = 0; v < lp.count; v++) {
-              const lx = lp.getX(v);
-              lp.setZ(v, -Math.pow(Math.abs(lx) / (leafLen * 0.5), 1.5) * 0.08);
-            }
-            leafGeo.computeVertexNormals();
-            const gcol = isYoung ? yellGreens[li % 2] : greens[li % greens.length];
-            const leaf = new THREE.Mesh(leafGeo, new THREE.MeshStandardMaterial({
-              color: gcol, roughness: 0.85, metalness: 0, side: THREE.DoubleSide
-            }));
-            const droopAt = droop * lt * lt;
-            const curlAt = curl * lt * lt * lt;
-            leaf.position.set(side * leafLen * 0.35, 0, along);
-            leaf.rotation.set(droopAt, 0, side * (0.35 + lt * 0.5) + curlAt * side);
-            frondGroup.add(leaf);
-          }
+      function makeFrond(length, width, droop, curl, isYoung) {
+        const sx = 14, sy = 6;
+        const geo = new THREE.PlaneGeometry(length, width, sx, sy);
+        const p = geo.attributes.position;
+        const cols = new Float32Array(p.count * 3);
+        const tipGreen = new THREE.Color(isYoung ? 0x5a8a30 : 0x1a3010);
+        const baseGreen = new THREE.Color(isYoung ? 0x4a7a28 : 0x2a4a20);
+        for (let i = 0; i < p.count; i++) {
+          const px = p.getX(i), py = p.getY(i);
+          const tx = (px + length / 2) / length;
+          const ty = (py + width / 2) / width;
+          const droopZ = -Math.pow(tx, 2.2) * droop;
+          const curlZ = -Math.pow(tx, 3.5) * curl;
+          const serrate = Math.abs(ty - 0.5) > 0.3 ? Math.sin(tx * length * 3.0) * 0.04 * tx : 0;
+          const notch = Math.abs(ty - 0.5) > 0.35 ? (1 - tx) * -0.02 : 0;
+          p.setZ(i, droopZ + curlZ + serrate + notch);
+          const taper = tx > 0.7 ? Math.max(0, 1 - (tx - 0.7) / 0.3) : 1;
+          const edgeCut = Math.abs(ty - 0.5) > 0.4 * taper ? 0 : 1;
+          if (edgeCut < 0.5 && tx > 0.8) p.setZ(i, droopZ - 2);
+          const midRib = Math.abs(ty - 0.5) < 0.08 ? 0.015 : 0;
+          p.setZ(i, p.getZ(i) + midRib);
+          const leafletV = (Math.sin(tx * length * 3.0) + 1) * 0.5;
+          const c = baseGreen.clone().lerp(tipGreen, tx * 0.6 + leafletV * 0.15);
+          const vari = (Math.sin(px * 11.3 + py * 7.7) * 0.5 + 0.5) * 0.06;
+          c.r += vari * 0.3; c.g += vari; c.b += vari * 0.2;
+          cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
         }
-        return frondGroup;
+        geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+        geo.computeVertexNormals();
+        const mat = isYoung ? _palmYoungMat : _palmFrondMats[Math.floor(Math.random() * 3)];
+        const m = new THREE.Mesh(geo, mat);
+        m.userData.isFrond = true;
+        return m;
       }
 
       for (let i = 0; i < 13; i++) {
-        const inner = i >= 9;
-        const young = i >= 11;
-        const fl = young ? 2.5 + Math.random() * 0.8 : inner ? 3.5 + Math.random() * 1.0 : 5.2 + Math.random() * 1.8;
-        const fw = young ? 0.3 : inner ? 0.45 : 0.65 + Math.random() * 0.15;
-        const segs = young ? 6 : inner ? 8 : 12;
-        const droopAmt = young ? 0.4 : inner ? 1.2 : 1.8 + Math.random() * 0.4;
-        const curlAmt = young ? 0.1 : 0.3 + Math.random() * 0.3;
-        const frond = makeFromd(fl, fw, segs, droopAmt, curlAmt, young);
+        const inner = i >= 9, young = i >= 11;
+        const fl = young ? 2.8 : inner ? 4.0 + Math.random() * 0.8 : 5.5 + Math.random() * 1.5;
+        const fw = young ? 0.4 : inner ? 0.6 : 0.85 + Math.random() * 0.15;
+        const droopAmt = young ? 0.5 : inner ? 1.5 : 2.2 + Math.random() * 0.5;
+        const curlAmt = young ? 0.15 : 0.4 + Math.random() * 0.3;
+        const frond = makeFrond(fl, fw, droopAmt, curlAmt, young);
         frond.position.copy(topOff).add(new THREE.Vector3(0, 0.15, 0));
-        const tilt = young ? -0.15 - Math.random() * 0.1 : inner ? -0.45 - Math.random() * 0.15 : -0.75 - Math.random() * 0.2;
-        frond.rotation.set(tilt, (PI2 * i) / 13 + (Math.random() - 0.5) * 0.12, 0);
+        const tilt = young ? -0.2 : inner ? -0.5 - Math.random() * 0.15 : -0.8 - Math.random() * 0.2;
+        frond.rotation.set(tilt, (PI2 * i) / 13 + (Math.random() - 0.5) * 0.12, -0.15);
         frond.castShadow = true;
         group.add(frond);
       }
 
       for (let d = 0; d < 2; d++) {
-        const df = new THREE.Mesh(
-          new THREE.PlaneGeometry(3.5 + Math.random(), 0.25, 8, 1),
-          smat(0x6a5030, 0.95, 0, {side: THREE.DoubleSide, transparent: true, opacity: 0.7})
-        );
+        const df = new THREE.Mesh(new THREE.PlaneGeometry(3.5 + Math.random(), 0.25, 8, 1), _palmDeadMat);
         const dp = df.geometry.attributes.position;
         for (let v = 0; v < dp.count; v++) {
-          const lx = dp.getX(v);
-          dp.setZ(v, -Math.pow((lx + 2) / 4, 2.5) * 2.5);
+          dp.setZ(v, -Math.pow((dp.getX(v) + 2) / 4, 2.5) * 2.5);
         }
         df.geometry.computeVertexNormals();
         df.position.copy(topOff).add(new THREE.Vector3(0, -0.6 - d * 0.35, 0));
-        df.rotation.set(-1.3 - d * 0.2, (PI2 * d) / 2 + Math.random() * 0.5, 0);
+        df.rotation.set(-1.3 - d * 0.2, PI * d + Math.random() * 0.5, 0);
         group.add(df);
       }
 
-      const nutMat = smat(0x3a2418, 0.85, 0.02);
-      const stemMat = smat(0x4a5a2a, 0.9);
-      for (let c = 0; c < 3 + Math.floor(Math.random() * 2); c++) {
+      for (let c = 0; c < 3; c++) {
         const nutG = new THREE.Group();
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.015, 0.4 + Math.random() * 0.2, 4), stemMat);
-        stem.position.y = -0.2; stem.rotation.z = (Math.random() - 0.5) * 0.3;
-        nutG.add(stem);
-        const nut = new THREE.Mesh(new THREE.SphereGeometry(0.2 + Math.random() * 0.05, 8, 8), nutMat);
-        nut.scale.set(0.9 + Math.random() * 0.15, 1.1 + Math.random() * 0.1, 0.85 + Math.random() * 0.1);
-        nut.position.y = -0.42; nut.rotation.set(Math.random() * 0.3, 0, Math.random() * 0.3);
-        nutG.add(nut);
-        const ca = (c / 4) * PI2 + Math.random() * 0.5;
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.015, 0.35, 3), _palmStemMat);
+        stem.position.y = -0.18; nutG.add(stem);
+        const nut = new THREE.Mesh(new THREE.SphereGeometry(0.2, 6, 6), _palmNutMat);
+        nut.scale.set(0.9, 1.12, 0.85); nut.position.y = -0.38; nutG.add(nut);
+        const ca = (c / 3) * PI2 + 0.4;
         nutG.position.set(topOff.x + Math.cos(ca) * 0.25, topOff.y - 0.2, topOff.z + Math.sin(ca) * 0.25);
         group.add(nutG);
       }
 
-      const rootMat = smat(0x3a2818, 0.95);
-      for (let r = 0; r < 5; r++) {
-        const ra = (r / 5) * PI2 + Math.random() * 0.3;
-        const rLen = 0.5 + Math.random() * 0.4;
-        const root = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.06, rLen, 5), rootMat);
-        root.position.set(Math.cos(ra) * 0.3, rLen * 0.2, Math.sin(ra) * 0.3);
+      for (let r = 0; r < 4; r++) {
+        const ra = (r / 4) * PI2 + Math.random() * 0.3;
+        const rLen = 0.45 + Math.random() * 0.3;
+        const root = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.05, rLen, 4), _palmRootMat);
+        root.position.set(Math.cos(ra) * 0.28, rLen * 0.2, Math.sin(ra) * 0.28);
         root.rotation.set(Math.cos(ra) * 0.6, 0, Math.sin(ra) * 0.6);
         group.add(root);
       }
@@ -1427,18 +1401,38 @@
       return bird;
     }
 
+    function createSimplePalm(x, z, height, lean) {
+      const g = new THREE.Group();
+      const tk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.3, height, 5, 4), smat(0x3b281e));
+      tk.position.y = height / 2; g.add(tk);
+      const top = new THREE.Vector3(Math.sin(lean) * height * 0.3, height, 0);
+      const fm = smat(0x243a21, 0.95, 0, {side:THREE.DoubleSide});
+      for (let i = 0; i < 7; i++) {
+        const fl = 3.5 + Math.random() * 2;
+        const leaf = new THREE.Mesh(new THREE.PlaneGeometry(fl, 0.6, 6, 1), fm);
+        const lp = leaf.geometry.attributes.position;
+        for (let v = 0; v < lp.count; v++) lp.setZ(v, -Math.pow((lp.getX(v)+fl/2)/fl, 2.2)*1.6);
+        leaf.geometry.computeVertexNormals();
+        leaf.position.copy(top);
+        leaf.rotation.set(-0.6-Math.random()*0.2, (PI2*i)/7, -0.2);
+        g.add(leaf);
+      }
+      g.position.set(x, 0, z); g.rotation.y = (x+z)*0.06;
+      return g;
+    }
+
     function addFarEnvironmentRing() {
       const fp = new THREE.Group();
-      for (let i = 0; i < 30; i++) {
-        const a = (i / 30) * PI2, r = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
-        fp.add(createPalm(Math.cos(a)*r, Math.sin(a)*r, 10+Math.random()*8, 0.12+Math.random()*0.16));
+      for (let i = 0; i < 22; i++) {
+        const a = (i / 22) * PI2, r = 70 + Math.sin(i * 1.7) * 8 + Math.random() * 10;
+        fp.add(createSimplePalm(Math.cos(a)*r, Math.sin(a)*r, 10+Math.random()*8, 0.12+Math.random()*0.16));
       }
       scene.add(fp);
 
       const mm = smat(0x35503a);
       for (let i = 0; i < 18; i++) {
         const a = (i / 18) * PI2 + 0.08, r = 84 + Math.random() * 18;
-        const m = new THREE.Mesh(new THREE.SphereGeometry(4 + Math.random() * 5, 16, 16), mm);
+        const m = new THREE.Mesh(new THREE.SphereGeometry(4 + Math.random() * 5, 10, 10), mm);
         m.scale.y = 0.4 + Math.random() * 0.25;
         m.position.set(Math.cos(a) * r, 0.6, Math.sin(a) * r);
         scene.add(m);
@@ -1653,7 +1647,7 @@
         palm.rotation.x = Math.cos(t * 0.4 + i * 0.7) * 0.005;
         let fi = 0;
         palm.children.forEach(child => {
-          if (child.type === 'Group' && child.children.length > 2) {
+          if (child.userData && child.userData.isFrond) {
             child.rotation.x += Math.sin(t * 0.8 + i * 0.9 + fi * 1.3) * 0.001;
             child.rotation.z += Math.sin(t * 0.6 + fi * 2.1) * 0.0008;
             fi++;
