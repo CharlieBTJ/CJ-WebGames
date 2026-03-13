@@ -1829,8 +1829,8 @@
       }
     }
 
-    function animateDayNight(t) {
-      const { hours24, minutes, dayNumber, phase } = getGameTimeData(t);
+    function animateDayNight(t, totalPlaySeconds) {
+      const { hours24, minutes, dayNumber, phase } = getGameTimeData(totalPlaySeconds);
       const daylight = THREE.MathUtils.clamp((Math.sin(phase) + 1) * 0.5, 0, 1);
       const dusk = Math.max(0, 1 - Math.abs(daylight - 0.28) / 0.18);
       const night = 1 - daylight;
@@ -2088,13 +2088,14 @@
 
       const t = clock.getElapsedTime();
       const ms = performance.now() - state.startTime;
+      const totalPlaySec = ms / 1000;
 
       updateHUD(ms);
       animateOcean(t);
       animateEnvironment(t);
       animateHero(t);
       animateCamera(t);
-      animateDayNight(t);
+      animateDayNight(t, totalPlaySec);
 
       renderer.render(scene, camera);
     }
