@@ -792,6 +792,7 @@
     let cloudGroup, fireflyGroup, sailboatGroup, waveSprayGroup, vegetationGroup;
     let secondaryFoam, tertiaryFoam;
     let wetSandMesh, sandSparkles, sandRipples;
+    let skyDome, skyUniforms;
 
     function isMobileViewport() {
       return window.innerWidth <= 640;
@@ -831,43 +832,180 @@
       return { hours24, minutes, dayNumber, phase };
     }
 
-    function createSkyTexture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 32;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.needsUpdate = true;
-      texture.userData = { canvas, ctx };
-      return texture;
+    function initSkyDome() {
+      skyUniforms = {
+        uTime: { value: 0.0 },
+        uDaylight: { value: 1.0 },
+        uSunsetAmount: { value: 0.0 },
+        uNightAmount: { value: 0.0 },
+        uSunDir: { value: new THREE.Vector3(0.0, 0.5, -0.866) }
+      };
+
+      const skyVert = [
+        'varying vec3 vWorldDir;',
+        'void main() {',
+        '  vec4 wp = modelMatrix * vec4(position, 1.0);',
+        '  vWorldDir = wp.xyz;',
+        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+        '}'
+      ].join('\n');
+
+      const skyFrag = [
+        'uniform float uTime;',
+        'uniform float uDaylight;',
+        'uniform float uSunsetAmount;',
+        'uniform float uNightAmount;',
+        'uniform vec3 uSunDir;',
+        'varying vec3 vWorldDir;',
+
+        'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+
+        'float snoise(vec2 p){',
+        '  vec2 i=floor(p),f=fract(p);',
+        '  f=f*f*(3.0-2.0*f);',
+        '  return mix(mix(hash21(i),hash21(i+vec2(1,0)),f.x),mix(hash21(i+vec2(0,1)),hash21(i+vec2(1,1)),f.x),f.y);',
+        '}',
+
+        'float fbm(vec2 p){',
+        '  float v=0.0,a=0.5;',
+        '  for(int i=0;i<5;i++){v+=a*snoise(p);p=mat2(0.93,0.36,-0.36,0.93)*p*2.03;a*=0.49;}',
+        '  return v;',
+        '}',
+
+        'void main(){',
+        '  vec3 dir=normalize(vWorldDir);',
+        '  float y=dir.y;',
+        '  vec3 sunDir=normalize(uSunDir);',
+        '  float sunDot=dot(dir,sunDir);',
+        '  float sunAng=acos(clamp(sunDot,-1.0,1.0));',
+
+        // Day sky gradient
+        '  vec3 dayZen=vec3(0.16,0.40,0.78);',
+        '  vec3 dayMid=vec3(0.36,0.56,0.84);',
+        '  vec3 dayHor=vec3(0.66,0.76,0.88);',
+        '  float hPow=pow(1.0-max(y,0.0),2.8);',
+        '  vec3 dayCol=mix(dayZen,dayMid,smoothstep(0.55,0.12,y));',
+        '  dayCol=mix(dayCol,dayHor,hPow);',
+
+        // Night sky gradient
+        '  vec3 nZen=vec3(0.004,0.006,0.035);',
+        '  vec3 nMid=vec3(0.01,0.016,0.055);',
+        '  vec3 nHor=vec3(0.025,0.035,0.08);',
+        '  vec3 nightCol=mix(nZen,nMid,smoothstep(0.5,0.12,y));',
+        '  nightCol=mix(nightCol,nHor,hPow);',
+
+        // Night nebula tint
+        '  if(uNightAmount>0.1){',
+        '    vec2 nUV=dir.xz/(abs(y)+0.35)*3.0;',
+        '    float neb=fbm(nUV*0.45+vec2(1.7,3.2));',
+        '    neb=smoothstep(0.28,0.68,neb);',
+        '    vec3 nebCol=mix(vec3(0.04,0.01,0.07),vec3(0.01,0.035,0.09),neb);',
+        '    nightCol+=nebCol*neb*max(y,0.0)*0.45*uNightAmount;',
+        '  }',
+
+        // Sunset multi-band
+        '  vec3 ssLow=vec3(0.97,0.58,0.10);',
+        '  vec3 ssMid=vec3(0.90,0.24,0.26);',
+        '  vec3 ssHi=vec3(0.45,0.14,0.46);',
+        '  vec3 ssZen=vec3(0.22,0.10,0.30);',
+        '  float b0=smoothstep(-0.02,0.07,y)*smoothstep(0.14,0.01,y);',
+        '  float b1=smoothstep(0.01,0.11,y)*smoothstep(0.24,0.07,y);',
+        '  float b2=smoothstep(0.08,0.20,y)*smoothstep(0.42,0.16,y);',
+        '  float b3=smoothstep(0.18,0.38,y)*smoothstep(0.68,0.32,y);',
+        '  vec3 ssCol=ssLow*b0+ssMid*b1+ssHi*b2+ssZen*b3;',
+        '  float sunFace=pow(max(dot(normalize(vec3(dir.x,0.0,dir.z)),normalize(vec3(sunDir.x,0.0,sunDir.z))),0.0),2.0);',
+        '  ssCol*=(0.35+sunFace*0.65);',
+
+        // Compose base sky
+        '  vec3 sky=mix(nightCol,dayCol,uDaylight);',
+        '  sky=mix(sky,ssCol,clamp(uSunsetAmount*1.3,0.0,1.0));',
+
+        // Atmospheric Rayleigh-like scatter
+        '  float scat=pow(1.0-max(y,0.0),6.0);',
+        '  vec3 scatCol=mix(vec3(0.82,0.48,0.20),vec3(0.68,0.74,0.86),smoothstep(0.0,0.28,y));',
+        '  sky+=scatCol*scat*0.11*uDaylight;',
+
+        // Mie forward scatter from sun
+        '  float mie=pow(max(sunDot,0.0),3.5)*0.22;',
+        '  vec3 mieCol=mix(vec3(1.0,0.58,0.18),vec3(0.92,0.86,0.72),uDaylight);',
+        '  sky+=mieCol*mie*(uDaylight*0.55+uSunsetAmount*0.85);',
+
+        // Sun glow layers
+        '  float sg1=exp(-sunAng*9.0)*1.4;',
+        '  float sg2=exp(-sunAng*3.2)*0.42;',
+        '  float sg3=exp(-sunAng*1.1)*0.14;',
+        '  vec3 iglow=mix(vec3(1.0,0.72,0.28),vec3(1.0,0.94,0.84),uDaylight);',
+        '  vec3 oglow=mix(vec3(1.0,0.38,0.08),vec3(0.88,0.78,0.58),uDaylight);',
+        '  float sunVis=max(uDaylight,uSunsetAmount*0.6);',
+        '  sky+=iglow*sg1*sunVis;',
+        '  sky+=oglow*sg2*sunVis*0.7;',
+        '  sky+=oglow*sg3*sunVis*0.35;',
+
+        // Horizon glow line
+        '  float hGlow=exp(-abs(y)*14.0);',
+        '  vec3 hgCol=mix(vec3(0.035,0.05,0.10),vec3(0.80,0.70,0.55),uDaylight);',
+        '  hgCol=mix(hgCol,vec3(1.0,0.50,0.16),uSunsetAmount*0.72);',
+        '  sky+=hgCol*hGlow*0.28;',
+
+        // Procedural cloud wisps
+        '  float cY=max(y,0.0);',
+        '  if(cY>0.008){',
+        '    vec2 cUV=dir.xz/cY*1.6;',
+        '    cUV+=vec2(uTime*0.014,uTime*0.003);',
+        '    float c1=fbm(cUV*1.0);',
+        '    float c2=fbm(cUV*2.8+vec2(5.3,2.7));',
+        '    float cls=smoothstep(0.40,0.66,c1)*0.6+smoothstep(0.43,0.70,c2)*0.4;',
+        '    cls*=smoothstep(0.008,0.09,cY)*smoothstep(0.65,0.18,cY);',
+        '    vec3 cBright=mix(vec3(0.10,0.11,0.16),vec3(0.94,0.94,0.91),uDaylight);',
+        '    cBright=mix(cBright,vec3(1.0,0.62,0.32),uSunsetAmount*0.55);',
+        '    float cSun=pow(max(sunDot,0.0),2.0)*0.28;',
+        '    cBright+=vec3(1.0,0.78,0.48)*cSun*uDaylight;',
+        '    sky=mix(sky,cBright,cls*0.38);',
+        '  }',
+
+        // Below horizon fade
+        '  if(y<0.0){',
+        '    float bf=smoothstep(0.0,-0.22,y);',
+        '    vec3 belowCol=mix(vec3(0.035,0.055,0.09),vec3(0.22,0.28,0.32),uDaylight*0.5);',
+        '    sky=mix(sky,belowCol,bf);',
+        '  }',
+
+        // Simple Reinhard tonemap + gamma
+        '  sky=sky/(sky+vec3(1.0))*1.85;',
+        '  sky=pow(sky,vec3(0.94));',
+        '  gl_FragColor=vec4(clamp(sky,0.0,1.0),1.0);',
+        '}'
+      ].join('\n');
+
+      const skyMat = new THREE.ShaderMaterial({
+        uniforms: skyUniforms,
+        vertexShader: skyVert,
+        fragmentShader: skyFrag,
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false
+      });
+
+      skyDome = new THREE.Mesh(new THREE.SphereGeometry(480, 64, 32), skyMat);
+      scene.add(skyDome);
+    }
+
+    function updateSkyDome(phase, t) {
+      if (!skyUniforms || !sunMesh) return;
+      const daylight = THREE.MathUtils.clamp((Math.sin(phase) + 1) * 0.5, 0, 1);
+      const dusk = Math.max(0, 1 - Math.abs(daylight - 0.28) / 0.18);
+      const night = 1 - daylight;
+      skyUniforms.uTime.value = t;
+      skyUniforms.uDaylight.value = daylight;
+      skyUniforms.uSunsetAmount.value = dusk;
+      skyUniforms.uNightAmount.value = night;
+      skyUniforms.uSunDir.value.copy(sunMesh.position).normalize();
     }
 
     function lerpColorHex(a, b, t) {
       const ca = new THREE.Color(a);
       const cb = new THREE.Color(b);
       return ca.lerp(cb, t);
-    }
-
-    function drawSkyGradient(texture, dayPhase) {
-      const { canvas, ctx } = texture.userData;
-      const phase = (Math.sin(dayPhase) + 1) * 0.5;
-      const sunsetBand = Math.max(0, 1 - Math.abs(phase - 0.22) / 0.18);
-      const nightBand = Math.max(0, 1 - phase * 1.6);
-
-      const topDay = lerpColorHex('#7da0b5', '#2c3950', nightBand * 0.9);
-      const midDay = lerpColorHex('#b7b8b0', '#6c5a6d', nightBand * 0.7);
-      const lowDay = lerpColorHex('#e4bb81', '#c06a4a', sunsetBand * 0.85 + nightBand * 0.15);
-      const horizonDay = lerpColorHex('#d79b5e', '#1f2434', nightBand * 0.95);
-
-      const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      g.addColorStop(0, `#${topDay.getHexString()}`);
-      g.addColorStop(0.34, `#${midDay.getHexString()}`);
-      g.addColorStop(0.68, `#${lowDay.getHexString()}`);
-      g.addColorStop(1, `#${horizonDay.getHexString()}`);
-
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      texture.needsUpdate = true;
     }
 
     function nextThought() {
@@ -967,9 +1105,9 @@
 
     function initScene() {
       scene = new THREE.Scene();
-      scene.background = createSkyTexture();
-      drawSkyGradient(scene.background, 0.35);
+      scene.background = new THREE.Color(0x000a14);
       scene.fog = new THREE.FogExp2(0xd9bc97, 0.0115);
+      initSkyDome();
 
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
     }
@@ -1836,7 +1974,7 @@
       const night = 1 - daylight;
       const starVisibility = Math.max(0, (night - 0.25) / 0.75);
 
-      drawSkyGradient(scene.background, phase);
+      updateSkyDome(phase, t);
 
       const fogColor = lerpColorHex('#d9bc97', '#253047', night * 0.9);
       scene.fog.color.copy(fogColor);
