@@ -490,41 +490,67 @@
         padding-bottom: max(6px, env(safe-area-inset-bottom));
         padding-left: max(6px, env(safe-area-inset-left));
         padding-right: max(6px, env(safe-area-inset-right));
-        gap: 4px;
+        gap: 2px;
+        justify-content: flex-end;
+      }
+
+      .top-row {
+        order: 1;
       }
 
       .title-bar {
-        min-height: 48px;
-        padding: 6px 10px;
-        border-radius: 12px;
+        min-height: 36px;
+        padding: 5px 8px;
+        border-radius: 10px;
         gap: 4px;
+        flex-direction: row;
+        align-items: center;
       }
 
       .title-left {
         max-width: none;
       }
 
+      .title-left > div:first-child {
+        display: none;
+      }
+
+      .title-left > div:nth-child(2) {
+        font-size: 14px !important;
+      }
+
+      .title-left > div:nth-child(3) {
+        display: none;
+      }
+
       .stats-panel {
         position: static;
         width: 100%;
-        margin-top: 2px;
-        border-radius: 10px;
-        padding: 6px 10px;
+        margin-top: 0;
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+
+      .stats-title {
+        font-size: 7px;
+        margin-bottom: 2px;
       }
 
       .middle-zone {
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
-        gap: 4px;
-        flex: 1;
+        justify-content: flex-end;
+        gap: 2px;
+        flex: 0;
         min-height: 0;
         overflow: hidden;
+        order: 2;
       }
 
       .stats-line {
-        grid-template-columns: minmax(0, 1fr) minmax(80px, auto);
-        font-size: 10px;
+        grid-template-columns: minmax(0, 1fr) minmax(60px, auto);
+        font-size: 9px;
+        gap: 2px;
       }
 
       .thought {
@@ -533,15 +559,15 @@
         opacity: 1;
         max-width: 100%;
         margin-top: 0;
-        font-size: 11px;
-        padding: 5px 8px;
-        border-radius: 10px;
+        font-size: 10px;
+        padding: 4px 6px;
+        border-radius: 8px;
       }
 
       .thought.welcome {
         bottom: auto;
-        font-size: 12px;
-        padding: 6px 10px;
+        font-size: 11px;
+        padding: 5px 8px;
       }
 
       .thought.show {
@@ -550,8 +576,9 @@
 
       .bottom-row {
         grid-template-columns: 1fr auto;
-        gap: 6px;
+        gap: 4px;
         align-items: end;
+        order: 3;
       }
 
       .bottom-left {
@@ -559,24 +586,24 @@
         grid-column: 1 / -1;
         max-width: none;
         width: 100%;
-        font-size: 9px;
-        padding: 4px 7px;
+        font-size: 8px;
+        padding: 3px 6px;
       }
 
       .ponder-btn {
         order: 1;
-        height: 48px;
+        height: 44px;
         min-width: 0;
         flex: 1;
-        border-radius: 14px;
-        font-size: 13px;
+        border-radius: 12px;
+        font-size: 12px;
       }
 
       .restart-btn {
         order: 2;
-        height: 48px;
+        height: 44px;
         min-width: 0;
-        border-radius: 14px;
+        border-radius: 12px;
       }
 
       .corner-mark {
@@ -591,18 +618,13 @@
       }
 
       .points-box {
-        padding: 4px 8px;
-        border-radius: 8px;
+        padding: 3px 6px;
+        border-radius: 6px;
       }
 
       .points-label {
-        font-size: 7px;
-        margin-bottom: 2px;
-      }
-
-      .stats-title {
-        font-size: 8px;
-        margin-bottom: 4px;
+        font-size: 6px;
+        margin-bottom: 1px;
       }
     }
 
