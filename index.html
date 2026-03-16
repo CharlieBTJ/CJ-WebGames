@@ -866,6 +866,7 @@
       };
 
       const skyVert = [
+        'precision highp float;',
         'varying vec3 vWorldDir;',
         'void main() {',
         '  vec4 wp = modelMatrix * vec4(position, 1.0);',
@@ -875,6 +876,7 @@
       ].join('\n');
 
       const skyFrag = [
+        'precision mediump float;',
         'uniform float uTime;',
         'uniform float uDaylight;',
         'uniform float uSunsetAmount;',
@@ -1217,6 +1219,7 @@
       starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
 
       const starVertSrc = [
+        'precision highp float;',
         'attribute float aSize;',
         'attribute float aPhase;',
         'attribute float aSpeed;',
@@ -1238,6 +1241,7 @@
       ].join('\n');
 
       const starFragSrc = [
+        'precision mediump float;',
         'varying float vBrightness;',
         'varying vec3 vColor;',
         'void main(){',
@@ -1461,6 +1465,7 @@
       };
 
       const oceanVert = [
+        'precision highp float;',
         'uniform float uTime;',
         'varying vec3 vWorldPos;',
         'varying vec3 vNormal;',
@@ -1500,6 +1505,7 @@
       ].join('\n');
 
       const oceanFrag = [
+        'precision mediump float;',
         'uniform float uTime;',
         'uniform vec3 uSunDir;',
         'uniform vec3 uSunColor;',
@@ -1656,6 +1662,7 @@
       };
 
       const shellVert = [
+        'precision highp float;',
         'varying vec3 vNormal;',
         'varying vec3 vWorldPos;',
         'varying vec3 vLocalPos;',
@@ -1669,6 +1676,7 @@
       ].join('\n');
 
       const shellFrag = [
+        'precision mediump float;',
         'uniform float uTime;',
         'uniform vec3 uSunDir;',
         'uniform vec3 uCamPos;',
@@ -1761,11 +1769,34 @@
         '}'
       ].join('\n');
 
-      const shellMat = new THREE.ShaderMaterial({
-        uniforms: coconutShellUniforms,
-        vertexShader: shellVert,
-        fragmentShader: shellFrag
-      });
+      let shellMat;
+      try {
+        const testMat = new THREE.ShaderMaterial({
+          uniforms: coconutShellUniforms,
+          vertexShader: shellVert,
+          fragmentShader: shellFrag
+        });
+        // Test if GL can compile this shader
+        const gl = renderer.getContext();
+        const prog = gl.createProgram();
+        const vs = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vs, shellVert);
+        gl.compileShader(vs);
+        const fs = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fs, shellFrag);
+        gl.compileShader(fs);
+        const vsOk = gl.getShaderParameter(vs, gl.COMPILE_STATUS);
+        const fsOk = gl.getShaderParameter(fs, gl.COMPILE_STATUS);
+        gl.deleteShader(vs);
+        gl.deleteShader(fs);
+        gl.deleteProgram(prog);
+        if (!vsOk || !fsOk) throw new Error('Shader compile failed');
+        shellMat = testMat;
+      } catch (e) {
+        // Fallback for browsers/devices where shader fails
+        shellMat = new THREE.MeshStandardMaterial({ color: 0x3a2010, roughness: 0.85, metalness: 0.02 });
+        coconutShellUniforms = null;
+      }
 
       const body = new THREE.Mesh(bodyGeo, shellMat);
       body.castShadow = true; body.receiveShadow = true;
