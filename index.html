@@ -1802,7 +1802,7 @@
       body.castShadow = true; body.receiveShadow = true;
       coconut.add(body);
 
-      // Coconut fibers — concentrated on upper half like a real coconut
+      // Coconut fibers — distributed across the whole surface
       const fiberMat = smat(0x5a3a1e, 1, 0, {transparent:true, opacity:0.4});
       const fiberMat2 = smat(0x4a2e16, 1, 0, {transparent:true, opacity:0.3});
       for (let i = 0; i < 320; i++) {
@@ -1812,12 +1812,13 @@
           new THREE.CylinderGeometry(thickness, thickness * 1.5, strandLen, 4),
           Math.random() > 0.5 ? fiberMat : fiberMat2
         );
-        // Bias fibers toward upper hemisphere
+        // Spread fibers across entire surface, slightly denser near top
         let [sx, sy, sz] = rndSph();
-        sy = Math.abs(sy) * 0.5 + 0.3; // push toward top
+        // Gently bias toward top: shift sy up a little but keep full coverage
+        sy = sy * 0.85 + 0.15;
         const d = Math.sqrt(sx*sx + sy*sy + sz*sz);
         sx /= d; sy /= d; sz /= d;
-        // Place on surface
+        // Place on surface matching coconut shape
         strand.position.set(sx * 0.86, sy * 0.88, sz * 0.82);
         strand.lookAt(sx * 1.6, sy * 1.6, sz * 1.6);
         strand.rotateX(PI / 2);
