@@ -629,24 +629,28 @@
     }
 
     @media (max-height: 600px) and (max-width: 640px) {
-      .stats-panel { display: none; }
       .bottom-left { display: none; }
-      .middle-zone { justify-content: center; }
-      .title-bar { min-height: 40px; padding: 4px 8px; }
-      .ponder-btn { height: 42px; }
-      .restart-btn { height: 42px; }
+      .middle-zone { justify-content: flex-end; }
+      .title-bar { min-height: 34px; padding: 3px 8px; }
+      .stats-panel { padding: 3px 6px; }
+      .stats-line { font-size: 8px; }
+      .ponder-btn { height: 40px; }
+      .restart-btn { height: 40px; }
+      .thought { font-size: 9px; padding: 3px 5px; }
     }
 
     /* Landscape phone — compact everything */
     @media (max-height: 500px) {
       .ui { padding: 4px; gap: 2px; }
-      .title-bar { min-height: 36px; padding: 4px 8px; gap: 2px; }
-      .stats-panel { display: none; }
+      .title-bar { min-height: 30px; padding: 3px 6px; gap: 2px; }
+      .stats-panel { padding: 2px 6px; }
+      .stats-line { font-size: 7px; }
+      .stats-title { display: none; }
       .bottom-left { display: none; }
-      .thought { font-size: 10px; padding: 3px 6px; }
-      .ponder-btn { height: 38px; font-size: 12px; }
-      .restart-btn { height: 38px; }
-      .middle-zone { justify-content: center; }
+      .thought { font-size: 9px; padding: 2px 5px; }
+      .ponder-btn { height: 36px; font-size: 11px; }
+      .restart-btn { height: 36px; }
+      .middle-zone { justify-content: flex-end; }
     }
   </style>
 </head>
