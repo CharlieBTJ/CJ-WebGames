@@ -1198,11 +1198,13 @@
       sc.left = sc.bottom = -70; sc.right = sc.top = 70; sc.far = 170;
       scene.add(sunLight);
 
-      sunMesh = new THREE.Mesh(new THREE.SphereGeometry(5.4, 32, 32), bmat(0xffd38a, {fog:false, transparent:true, opacity:0.98}));
+      sunMesh = new THREE.Mesh(new THREE.SphereGeometry(5.4, 32, 32), bmat(0xffd38a, {fog:false, transparent:true, opacity:0.98, depthWrite:false}));
+      sunMesh.renderOrder = -1;
       sunMesh.position.set(0, 9.4, -28);
       scene.add(sunMesh);
 
-      moonMesh = new THREE.Mesh(new THREE.SphereGeometry(3.2, 24, 24), bmat(0xdfe8ff, {fog:false, transparent:true, opacity:0}));
+      moonMesh = new THREE.Mesh(new THREE.SphereGeometry(3.2, 24, 24), bmat(0xdfe8ff, {fog:false, transparent:true, opacity:0, depthWrite:false}));
+      moonMesh.renderOrder = -1;
       moonMesh.position.set(-10, 6, -30);
       scene.add(moonMesh);
 
@@ -1360,14 +1362,6 @@
 
         const nest = Math.hypot(x, y + 6);
         if (nest < 2.5) z -= (2.5 - nest) * 0.055;
-
-        // Subtle sand lip around coconut (world x=0, z=0.7 → plane local x=0, y=-0.7)
-        const cDist = Math.hypot(x, y + 0.7);
-        if (cDist < 2.0) {
-          // Small rise right at the coconut edge, tapering to nothing
-          const t = cDist / 2.0;
-          z += 0.04 * Math.max(0, 1.0 - t) * Math.max(0, t - 0.3);
-        }
 
         z += (noise2(x * 0.5, y * 0.5) - 0.5) * 0.03;
 
