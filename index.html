@@ -1119,7 +1119,7 @@
       const mobile = isMobileViewport();
 
       orbitState = {
-        target: new THREE.Vector3(0, 0.95, 0.7),
+        target: new THREE.Vector3(0, 0.45, 0.7),
         yaw: -0.08,
         pitch: mobile ? 0.1 : 0.14,
         distance: mobile ? 7.4 : 5.8,
@@ -1817,14 +1817,8 @@
         coconut.add(tuft);
       }
 
-      // Ground shadow — darker patch under the coconut
-      const baseShadow = new THREE.Mesh(new THREE.CircleGeometry(0.85, 48), bmat(0x000000, {transparent:true, opacity:0.22}));
-      baseShadow.rotation.x = -PI / 2; baseShadow.position.y = -0.95;
-      baseShadow.scale.set(1.0, 0.65, 1);
-      coconut.add(baseShadow);
-
       const ms = isMobileViewport() ? 0.9 : 1.0;
-      coconut.position.set(0, 0.05, 0.7);
+      coconut.position.set(0, -0.25, 0.7);
       coconut.scale.set(1.05*ms, 1.15*ms, 1.05*ms);
       coconut.rotation.set(-0.05, -0.16, -0.06);
       scene.add(coconut);
